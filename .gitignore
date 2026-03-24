@@ -1,12 +1,26 @@
-# Python
+# Python cache / compiled files
 __pycache__/
 *.py[cod]
 *$py.class
 
+# Virtual environments / secrets
+.env
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Django local runtime files
+/db.sqlite3
+/db.sqlite3-journal
+/local_settings.py
+/staticfiles/
+
 # Build / packaging
 .Python
 build/
-develop-eggs/
 dist/
 downloads/
 eggs/
@@ -23,7 +37,7 @@ share/python-wheels/
 *.egg
 MANIFEST
 
-# Logs / reports
+# Test / coverage / logs
 *.log
 htmlcov/
 .tox/
@@ -39,7 +53,7 @@ coverage.xml
 .pytest_cache/
 cover/
 
-# Jupyter / editor junk
+# Editor / IDE
 .ipynb_checkpoints/
 .vscode/
 .idea/
@@ -47,29 +61,10 @@ cover/
 .spyproject
 .ropeproject
 
-# Environments / secrets
-.env
-.venv/
-venv/
-env/
-ENV/
-env.bak/
-venv.bak/
-
-# Django
-/db.sqlite3
-/db.sqlite3-journal
-/media/
-/static/
-/local_settings.py
-
-# If you use collectstatic output elsewhere, keep this ignored
-/staticfiles/
-
-# OS files
+# OS junk
 .DS_Store
 Thumbs.db
 
-# Optional
+# Misc
 pip-log.txt
 pip-delete-this-directory.txt
