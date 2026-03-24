@@ -17,6 +17,10 @@ venv.bak/
 /db.sqlite3-journal
 /local_settings.py
 /staticfiles/
+/media/faculty_profile_pics/*
+/media/student_profile_pics/*
+!/media/faculty_profile_pics/.gitkeep
+!/media/student_profile_pics/.gitkeep
 
 # Build / packaging
 .Python
