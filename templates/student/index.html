@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block student_header_status %}
+<div class="student-network-badge student-header-network" id="studentNetworkBadge" aria-live="polite">
+    <span class="student-network-dot"></span>
+    <span class="student-network-copy">
+        <strong id="studentNetworkLabel">Network Stable</strong>
+        <span id="studentNetworkMeta">Checking connection...</span>
+    </span>
+</div>
+{% endblock %}
+
+{% block body %}
+<section class="student-card student-home-card">
+    <div class="student-page-heading">
+        <p class="student-eyebrow">Student Dashboard</p>
+        <h1 class="student-page-title">Welcome, {% firstof request.user.get_full_name request.user.username %}</h1>
+        <p class="student-page-copy">Use the quick actions below to view upcoming exams, track performance, review attendance, and manage your account from one place.</p>
+    </div>
+
+    <div class="student-monitor-grid">
+        <article class="student-monitor-card">
+            <span>Available Exams</span>
+            <strong>{{ available_exams }}</strong>
+        </article>
+        <article class="student-monitor-card">
+            <span>Exams Completed</span>
+            <strong>{{ exams_completed }}</strong>
+        </article>
+        <article class="student-monitor-card">
+            <span>Total Score</span>
+            <strong>{{ student_total_score }}</strong>
+        </article>
+        <article class="student-monitor-card">
+            <span>Overall Rank</span>
+            <strong>{% if student_rank %}#{{ student_rank }}{% else %}Unranked{% endif %}</strong>
+        </article>
+    </div>
+
+    <div class="student-action-grid">
+        <a href="{% url 'view_exams_student' %}" class="student-action-link">
+            <article class="student-action-card">
+                <div class="student-action-body">
+                    <h2>View Exams</h2>
+                    <p>Check pending exams and open the exam window when it is time to appear.</p>
+                </div>
+            </article>
+        </a>
+
+        <a href="{% url 'student-previous' %}" class="student-action-link">
+            <article class="student-action-card">
+                <div class="student-action-body">
+                    <h2>Previous Exams</h2>
+                    <p>Review completed exams, revisit scores, and track your progress over time.</p>
+                </div>
+            </article>
+        </a>
+
+        <a href="{% url 'view_students_attendance' %}" class="student-action-link">
+            <article class="student-action-card">
+                <div class="student-action-body">
+                    <h2>Attendance</h2>
+                    <p>Check the exams you have attended and keep a quick view of your activity.</p>
+                </div>
+            </article>
+        </a>
+
+        <a href="{% url 'email-student-pref' %}" class="student-action-link">
+            <article class="student-action-card">
+                <div class="student-action-body">
+                    <h2>Settings</h2>
+                    <p>Manage email preferences, password settings, and account details securely.</p>
+                </div>
+            </article>
+        </a>
+
+        <a href="{% url 'contact_support' %}" class="student-action-link">
+            <article class="student-action-card">
+                <div class="student-action-body">
+                    <h2>Contact Support</h2>
+                    <p>Reach support quickly if you face login, exam, attendance, or technical issues.</p>
+                </div>
+            </article>
+        </a>
+    </div>
+</section>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var badge = document.getElementById('studentNetworkBadge');
+    var label = document.getElementById('studentNetworkLabel');
+    var meta = document.getElementById('studentNetworkMeta');
+    var probeTimer = null;
+    var probeInFlight = false;
+    if (!badge || !label || !meta) {
+        return;
+    }
+
+    function renderBadge(state, labelText, metaText) {
+        badge.classList.remove('is-good', 'is-fair', 'is-poor', 'is-offline');
+        badge.classList.add(state);
+        label.textContent = labelText;
+        meta.textContent = metaText;
+    }
+
+    async function runNetworkProbe() {
+        if (probeInFlight) {
+            return;
+        }
+
+        if (!navigator.onLine) {
+            renderBadge('is-offline', 'Offline', 'Reconnect before opening an exam');
+            return;
+        }
+
+        probeInFlight = true;
+        try {
+            var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+            var timeoutId = controller ? window.setTimeout(function() { controller.abort(); }, 8000) : null;
+            var start = performance.now();
+            var response = await fetch("{% static 'css/bootstrap.min.css' %}?network_probe=" + Date.now(), {
+                cache: 'no-store',
+                signal: controller ? controller.signal : undefined
+            });
+            var blob = await response.blob();
+            var elapsedMs = Math.max(performance.now() - start, 1);
+            if (timeoutId) {
+                window.clearTimeout(timeoutId);
+            }
+
+            var megabitsPerSecond = ((blob.size * 8) / (elapsedMs / 1000)) / 1000000;
+            if (megabitsPerSecond >= 8) {
+                renderBadge('is-good', 'Network Stable', megabitsPerSecond.toFixed(1) + ' Mbps live');
+            } else if (megabitsPerSecond >= 3) {
+                renderBadge('is-fair', 'Network Fair', megabitsPerSecond.toFixed(1) + ' Mbps live');
+            } else {
+                renderBadge('is-poor', 'Weak Network', megabitsPerSecond.toFixed(1) + ' Mbps live');
+            }
+        } catch (error) {
+            renderBadge(navigator.onLine ? 'is-poor' : 'is-offline', navigator.onLine ? 'Probe Failed' : 'Offline', navigator.onLine ? 'Could not measure live speed' : 'Reconnect before opening an exam');
+        } finally {
+            probeInFlight = false;
+        }
+    }
+
+    runNetworkProbe();
+    probeTimer = window.setInterval(runNetworkProbe, 5000);
+    window.addEventListener('online', runNetworkProbe);
+    window.addEventListener('offline', runNetworkProbe);
+});
+</script>
+{% endblock %}

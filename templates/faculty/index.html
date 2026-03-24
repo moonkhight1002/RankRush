@@ -1,0 +1,152 @@
+{% extends "base_faculty.html" %}
+{% load static %}
+
+{% block faculty_header_status %}
+<div class="faculty-network-badge faculty-header-network" id="facultyNetworkBadge" aria-live="polite">
+    <span class="faculty-network-dot"></span>
+    <span class="faculty-network-copy">
+        <strong id="facultyNetworkLabel">Network Stable</strong>
+        <span id="facultyNetworkMeta">Checking connection...</span>
+    </span>
+</div>
+{% endblock %}
+
+{% block body %}
+<section class="glass-card faculty-home-card">
+    <div class="page-heading">
+        <p class="eyebrow">Faculty Dashboard</p>
+        <h1 class="page-title">Welcome, {% firstof request.user.get_full_name request.user.username %}</h1>
+        <p class="page-copy">Use the guided flow below to create questions, build question papers, and schedule exams without leaving the dashboard.</p>
+    </div>
+
+    <div class="faculty-monitor-grid">
+        <article class="faculty-monitor-card">
+            <span>Active Sessions</span>
+            <strong>{{ monitor_summary.active_sessions }}</strong>
+        </article>
+        <article class="faculty-monitor-card">
+            <span>Stale Sessions</span>
+            <strong>{{ monitor_summary.stale_sessions }}</strong>
+        </article>
+        <article class="faculty-monitor-card">
+            <span>Violation Events</span>
+            <strong>{{ monitor_summary.violation_events }}</strong>
+        </article>
+        <article class="faculty-monitor-card">
+            <span>Fast Submit Flags</span>
+            <strong>{{ monitor_summary.high_risk_signals }}</strong>
+        </article>
+    </div>
+
+    <div class="steps-container">
+        <a href="{% url 'faculty-addquestions' %}" class="step-link">
+            <article class="step-card">
+                <div class="step-body">
+                    <h2>Create Questions</h2>
+                    <p>Add new questions to your question bank with options, answers, and marks.</p>
+                </div>
+            </article>
+        </a>
+
+        <a href="{% url 'faculty-add_question_paper' %}" class="step-link">
+            <article class="step-card">
+                <div class="step-body">
+                    <h2>Build Paper</h2>
+                    <p>Group selected questions into a question paper ready for an exam.</p>
+                </div>
+            </article>
+        </a>
+
+        <a href="{% url 'view_exams' %}" class="step-link">
+            <article class="step-card">
+                <div class="step-body">
+                    <h2>Schedule Exam</h2>
+                    <p>Attach a question paper, define timing, and publish the final exam setup.</p>
+                </div>
+            </article>
+        </a>
+
+        <a href="{% url 'faculty-sessions' %}" class="step-link">
+            <article class="step-card">
+                <div class="step-body">
+                    <h2>Active Sessions</h2>
+                    <p>Monitor active and stale student exam sessions from the faculty dashboard.</p>
+                </div>
+            </article>
+        </a>
+
+        <a href="{% url 'faculty-violations' %}" class="step-link">
+            <article class="step-card">
+                <div class="step-body">
+                    <h2>Violation Logs</h2>
+                    <p>Review warnings, suspicious submits, and other flagged anti-cheat events.</p>
+                </div>
+            </article>
+        </a>
+    </div>
+</section>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var badge = document.getElementById('facultyNetworkBadge');
+    var label = document.getElementById('facultyNetworkLabel');
+    var meta = document.getElementById('facultyNetworkMeta');
+    var probeTimer = null;
+    var probeInFlight = false;
+    if (!badge || !label || !meta) {
+        return;
+    }
+
+    function renderBadge(state, labelText, metaText) {
+        badge.classList.remove('is-good', 'is-fair', 'is-poor', 'is-offline');
+        badge.classList.add(state);
+        label.textContent = labelText;
+        meta.textContent = metaText;
+    }
+
+    async function runNetworkProbe() {
+        if (probeInFlight) {
+            return;
+        }
+
+        if (!navigator.onLine) {
+            renderBadge('is-offline', 'Offline', 'Dashboard actions may fail until reconnected');
+            return;
+        }
+
+        probeInFlight = true;
+        try {
+            var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+            var timeoutId = controller ? window.setTimeout(function() { controller.abort(); }, 8000) : null;
+            var start = performance.now();
+            var response = await fetch("{% static 'css/faculty_dashboard.css' %}?network_probe=" + Date.now(), {
+                cache: 'no-store',
+                signal: controller ? controller.signal : undefined
+            });
+            var blob = await response.blob();
+            var elapsedMs = Math.max(performance.now() - start, 1);
+            if (timeoutId) {
+                window.clearTimeout(timeoutId);
+            }
+
+            var megabitsPerSecond = ((blob.size * 8) / (elapsedMs / 1000)) / 1000000;
+            if (megabitsPerSecond >= 8) {
+                renderBadge('is-good', 'Network Stable', megabitsPerSecond.toFixed(1) + ' Mbps live');
+            } else if (megabitsPerSecond >= 3) {
+                renderBadge('is-fair', 'Network Fair', megabitsPerSecond.toFixed(1) + ' Mbps live');
+            } else {
+                renderBadge('is-poor', 'Weak Network', megabitsPerSecond.toFixed(1) + ' Mbps live');
+            }
+        } catch (error) {
+            renderBadge(navigator.onLine ? 'is-poor' : 'is-offline', navigator.onLine ? 'Probe Failed' : 'Offline', navigator.onLine ? 'Could not measure live speed' : 'Dashboard actions may fail until reconnected');
+        } finally {
+            probeInFlight = false;
+        }
+    }
+
+    runNetworkProbe();
+    probeTimer = window.setInterval(runNetworkProbe, 5000);
+    window.addEventListener('online', runNetworkProbe);
+    window.addEventListener('offline', runNetworkProbe);
+});
+</script>
+{% endblock %}

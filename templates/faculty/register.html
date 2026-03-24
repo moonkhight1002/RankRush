@@ -1,0 +1,92 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Faculty Register</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/auth.css' %}">
+</head>
+<body data-auth-scope="faculty" data-auth-view="register">
+
+<a href="{% url 'homepage' %}" class="home-btn">
+    <i class="fas fa-home"></i>
+</a>
+
+<div class="auth-wrapper panel-active">
+    <div class="auth-form-box login-form-box auth-preview-box" aria-hidden="true">
+        <div class="auth-preview-form">
+            <h1>Faculty Login</h1>
+            <p class="auth-preview-copy">Return to your faculty workspace and exam controls.</p>
+            <div class="auth-preview-fields auth-preview-fields-compact">
+                <div class="auth-preview-field">Username</div>
+                <div class="auth-preview-field">Password</div>
+            </div>
+            <button type="button" class="auth-preview-button" disabled>Sign In</button>
+        </div>
+    </div>
+
+    <div class="auth-form-box register-form-box">
+        <form method="post" action="{% url 'faculty-register' %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            <h1>Create Account</h1>
+
+            {% if faculty_form.errors %}
+                <div class="form-errors">{{ faculty_form.errors }}</div>
+            {% endif %}
+            {% if faculty_info_form.errors %}
+                <div class="form-errors">{{ faculty_info_form.errors }}</div>
+            {% endif %}
+
+            <input type="text" name="username" placeholder="Username" required />
+            {{ faculty_form.full_name }}
+            <input type="email" name="email" placeholder="Email Address" required />
+            <input type="password" name="password" placeholder="Password" required />
+            {{ faculty_info_form.subject }}
+
+            <div class="avatar-upload">
+                <input type="file" name="picture" id="avatarInput" hidden>
+                <label for="avatarInput" class="avatar-label">
+                    <img src="{% static 'img/default-avatar.jpg' %}" id="avatarPreview">
+                    <span>Click to upload photo</span>
+                </label>
+            </div>
+
+            <button type="submit">Sign Up</button>
+            <div class="auth-form-footer auth-form-footer-inline">
+                <span class="auth-footer-caption">Already registered?</span>
+                <a href="{% url 'faculty-login' %}" class="auth-footer-link js-auth-switch-link" data-auth-scope="faculty" data-auth-target="login">Sign In</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Sliding Panel -->
+    <div class="slide-panel-wrapper">
+        <div class="slide-panel">
+            <div class="panel-content panel-content-left">
+                <h1>Welcome Back!</h1>
+                <p>Login with your credentials</p>
+                <a href="{% url 'faculty-login' %}" class="transparent-btn auth-panel-link js-auth-switch-link" data-auth-scope="faculty" data-auth-target="login">Sign In</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'js/auth_switch.js' %}"></script>
+<script>
+document.getElementById("avatarInput")?.addEventListener("change", function(e){
+    const file = e.target.files[0];
+    if(file){
+        const reader = new FileReader();
+        reader.onload = function(event){
+            document.getElementById("avatarPreview").src = event.target.result;
+        }
+        reader.readAsDataURL(file);
+    }
+});
+</script>
+
+</body>
+</html>

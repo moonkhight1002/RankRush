@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block body %}
+<section class="student-card">
+    <div class="student-page-heading">
+        <p class="student-eyebrow">Summary</p>
+        <h1 class="student-page-title">Previous Exams</h1>
+        <p class="student-page-copy">Review exams you completed and open the result page for each one.</p>
+    </div>
+
+    {% if completed %}
+        <div class="student-table-wrap">
+            <table class="student-table">
+                <thead>
+                    <tr>
+                        <th>Exam Name</th>
+                        <th>Question Paper</th>
+                        <th>Professor</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for exam in completed %}
+                        <tr>
+                            <td>{{ exam.name }}</td>
+                            <td>{{ exam.question_paper.qPaperTitle }}</td>
+                            <td>{{ exam.professor }}</td>
+                            <td><a href="{% url 'result' exam.id %}" class="student-main-btn">View Result</a></td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="student-empty-state">
+            No exams have been completed yet.
+        </div>
+    {% endif %}
+</section>
+{% endblock %}

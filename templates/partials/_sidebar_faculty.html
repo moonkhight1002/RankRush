@@ -1,0 +1,33 @@
+<input type="checkbox" id="faculty-nav-toggle" class="faculty-nav-toggle">
+
+<label for="faculty-nav-toggle" class="faculty-nav-button" aria-label="Toggle navigation">
+  <span class="faculty-nav-open">&#9776;</span>
+  <span class="faculty-nav-close">&times;</span>
+</label>
+
+<aside class="sidebar">
+  <div class="sidebar-title">Dashboard</div>
+
+  <nav class="sidebar-nav">
+    <div class="sidebar-section">
+      <div class="sidebar-heading">Create New Exams</div>
+      <a href="{% url 'faculty-addquestions' %}" class="sidebar-link{% if request.resolver_match.url_name == 'faculty-addquestions' %} active{% endif %}">Create Questions</a>
+      <a href="{% url 'faculty-add_question_paper' %}" class="sidebar-link{% if request.resolver_match.url_name == 'faculty-add_question_paper' %} active{% endif %}">Build Paper</a>
+      <a href="{% url 'view_exams' %}" class="sidebar-link{% if request.resolver_match.url_name == 'view_exams' %} active{% endif %}">Schedule Exam</a>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-heading">Summary</div>
+      <a href="{% url 'faculty-previous' %}" class="sidebar-link{% if request.resolver_match.url_name == 'faculty-previous' %} active{% endif %}">View Previous Exams</a>
+      <a href="{% url 'faculty-student' %}" class="sidebar-link{% if request.resolver_match.url_name == 'faculty-student' %} active{% endif %}">Students</a>
+      <a href="{% url 'faculty-result' %}" class="sidebar-link{% if request.resolver_match.url_name == 'faculty-result' %} active{% endif %}">Results</a>
+      <a href="{% url 'faculty-violations' %}" class="sidebar-link{% if request.resolver_match.url_name == 'faculty-violations' %} active{% endif %}">Violation Logs</a>
+      <a href="{% url 'faculty-sessions' %}" class="sidebar-link{% if request.resolver_match.url_name == 'faculty-sessions' %} active{% endif %}">Active Sessions</a>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-heading">Actions</div>
+      <a href="{% url 'contact_support' %}" class="sidebar-link{% if request.resolver_match.url_name == 'contact_support' %} active{% endif %}">Contact Support</a>
+    </div>
+  </nav>
+</aside>

@@ -1,0 +1,221 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RankRush - Student</title>
+    <link rel="icon" type="image/png" href="{% static 'img/book.png' %}?v=2">
+    {% block css_block %}
+    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/main.css' %}" rel="stylesheet">
+    <link href="{% static 'css/dashboard.css' %}" rel="stylesheet">
+    {% endblock %}
+</head>
+<body>
+<div class="student-shell">
+    <header class="student-header">
+        <div class="student-title">RankRush - Student</div>
+
+        <div class="student-header-right">
+            {% block student_header_status %}{% endblock %}
+            {% if request.resolver_match.url_name != 'index' %}
+                <a href="{% url 'index' %}" class="student-home-btn">Home</a>
+            {% endif %}
+
+            <details class="student-profile-menu">
+                <summary class="student-profile">
+                    <span class="student-profile-name">{% firstof request.user.get_full_name request.user.username %}</span>
+                    {% if request.user.studentinfo.picture %}
+                        <img src="{{ request.user.studentinfo.picture.url }}" class="student-profile-pic" alt="Profile picture">
+                    {% else %}
+                        <img src="{% static 'img/default-avatar.jpg' %}" class="student-profile-pic" alt="Default avatar">
+                    {% endif %}
+                </summary>
+
+                <div class="student-profile-dropdown">
+                    <a href="#student-change-dp-modal">Change Profile Picture</a>
+                    <a href="#student-change-email-modal">Change Email</a>
+                    <a href="{% url 'email-student-pref' %}">Settings</a>
+                    <a href="{% url 'change_password' %}">Change Password</a>
+                    <div class="student-profile-divider"></div>
+                    <div class="student-profile-theme-group">
+                        <p class="student-profile-theme-label">Theme</p>
+                        <button type="button" class="student-theme-option" data-theme-value="dark">Dark Mode</button>
+                        <button type="button" class="student-theme-option" data-theme-value="light">Light Mode</button>
+                        <button type="button" class="student-theme-option" data-theme-value="system">System Settings</button>
+                    </div>
+                    <div class="student-profile-divider"></div>
+                    <form method="POST" action="{% url 'logout' %}" class="js-student-logout-form student-profile-logout-form" data-username="{% firstof request.user.get_full_name request.user.username %}">
+                        {% csrf_token %}
+                        <button type="submit">Logout</button>
+                    </form>
+                </div>
+            </details>
+        </div>
+    </header>
+
+    <div class="student-layout">
+        {% include 'partials/_sidebar.html' %}
+
+        <main class="student-page-content">
+            <div class="page-messages">
+                {% include 'partials/_messages.html' %}
+            </div>
+            {% block body %}
+            {% endblock %}
+        </main>
+    </div>
+
+    <div id="student-change-dp-modal" class="student-modal">
+        <a href="#" class="student-modal-backdrop" aria-label="Close"></a>
+        <div class="student-modal-card">
+            <a href="#" class="student-modal-close" aria-label="Close">&times;</a>
+            <p class="student-eyebrow">Profile</p>
+            <h2 class="student-page-title student-modal-title">Change Profile Picture</h2>
+            <p class="student-page-copy">Frontend preview only. Saving a new student picture still needs backend support.</p>
+
+            <div class="student-form-group student-profile-upload-group">
+                <label for="student-profile-picture-file">Upload New Picture</label>
+                <input type="file" id="student-profile-picture-file" accept="image/*" class="student-styled-file-input">
+                <label for="student-profile-picture-file" class="student-profile-preview student-profile-preview-trigger">
+                    {% if request.user.studentinfo.picture %}
+                        <img src="{{ request.user.studentinfo.picture.url }}" class="student-profile-preview-pic" alt="Profile picture">
+                    {% else %}
+                        <img src="{% static 'img/default-avatar.jpg' %}" class="student-profile-preview-pic" alt="Default avatar">
+                    {% endif %}
+                    <span class="student-profile-preview-text">Click to select image.</span>
+                </label>
+            </div>
+
+            <div class="student-submit-area">
+                <a href="#" class="student-main-btn student-modal-btn">Done</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="student-change-email-modal" class="student-modal">
+        <a href="#" class="student-modal-backdrop" aria-label="Close"></a>
+        <div class="student-modal-card">
+            <a href="#" class="student-modal-close" aria-label="Close">&times;</a>
+            <p class="student-eyebrow">Profile</p>
+            <h2 class="student-page-title student-modal-title">Change Email</h2>
+            <p class="student-page-copy">Frontend preview only. Use the settings page if you later add backend support for email updates.</p>
+
+            <div class="student-form-group">
+                <label for="student-profile-email">Email Address</label>
+                <input type="email" id="student-profile-email" value="{{ request.user.email }}" placeholder="Enter email address">
+            </div>
+
+            <div class="student-submit-area">
+                <a href="#" class="student-main-btn student-modal-btn">Done</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="student-logout-overlay" id="studentLogoutOverlay" aria-hidden="true">
+    <div class="student-logout-card">
+        <div class="student-logout-brand" aria-hidden="true">
+            <span class="student-logout-ring"></span>
+            <span class="student-logout-ring student-logout-ring-delay"></span>
+            <div class="student-logout-mark">
+                <img src="{% static 'img/book.png' %}" alt="" class="student-logout-logo">
+            </div>
+        </div>
+        <p class="student-eyebrow">Session</p>
+        <h2 class="student-page-title student-logout-title">Logging Out</h2>
+        <p class="student-page-copy student-logout-copy">Closing your workspace and returning to the login page.</p>
+        <div class="student-logout-dots" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var storageKey = 'rankrush-theme-student-{{ request.user.username|escapejs }}';
+    var themeButtons = document.querySelectorAll('.student-theme-option');
+    var systemQuery = window.matchMedia('(prefers-color-scheme: light)');
+
+    function getPreferredTheme() {
+        return localStorage.getItem(storageKey) || 'dark';
+    }
+
+    function resolveTheme(theme) {
+        return theme === 'system' ? (systemQuery.matches ? 'light' : 'dark') : theme;
+    }
+
+    function updateThemeButtons(theme) {
+        themeButtons.forEach(function(button) {
+            button.classList.toggle('is-active', button.dataset.themeValue === theme);
+        });
+    }
+
+    function applyTheme(theme) {
+        var resolvedTheme = resolveTheme(theme);
+        document.body.classList.remove('theme-light', 'theme-dark');
+        document.body.classList.add(resolvedTheme === 'light' ? 'theme-light' : 'theme-dark');
+        updateThemeButtons(theme);
+    }
+
+    themeButtons.forEach(function(button) {
+        button.addEventListener('click', function() {
+            var theme = button.dataset.themeValue || 'dark';
+            localStorage.setItem(storageKey, theme);
+            applyTheme(theme);
+        });
+    });
+
+    if (typeof systemQuery.addEventListener === 'function') {
+        systemQuery.addEventListener('change', function() {
+            if (getPreferredTheme() === 'system') {
+                applyTheme('system');
+            }
+        });
+    } else if (typeof systemQuery.addListener === 'function') {
+        systemQuery.addListener(function() {
+            if (getPreferredTheme() === 'system') {
+                applyTheme('system');
+            }
+        });
+    }
+
+    applyTheme(getPreferredTheme());
+});
+
+document.querySelectorAll('.js-student-logout-form').forEach(function(form) {
+    form.addEventListener('submit', function(event) {
+        if (form.dataset.logoutReady === 'true') {
+            return;
+        }
+
+        event.preventDefault();
+        sessionStorage.setItem('studentLogoutName', form.dataset.username || '');
+        form.dataset.logoutReady = 'true';
+        document.body.classList.add('is-logging-out');
+
+        var overlay = document.getElementById('studentLogoutOverlay');
+        if (overlay) {
+            overlay.classList.add('is-visible');
+            overlay.setAttribute('aria-hidden', 'false');
+        }
+
+        window.setTimeout(function() {
+            form.submit();
+        }, 450);
+    });
+});
+
+window.addEventListener('pageshow', function(event) {
+    const nav = performance.getEntriesByType('navigation');
+    const isBackForward = nav.length && nav[0].type === 'back_forward';
+    if (event.persisted || isBackForward) {
+        window.location.reload();
+    }
+});
+</script>
+</body>
+</html>

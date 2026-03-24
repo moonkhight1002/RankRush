@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block body %}
+<section class="student-card">
+    <div class="student-page-heading">
+        <p class="student-eyebrow">Support</p>
+        <h1 class="student-page-title">Contact Support</h1>
+        <p class="student-page-copy">Share feedback, report a problem, or ask for help. Your message will be visible only to the admin team.</p>
+    </div>
+
+    <form method="post" action="{% url 'contact_support' %}" class="student-form-stack support-form-shell">
+        {% csrf_token %}
+        <div class="student-settings-links support-info-grid">
+            <div class="student-settings-panel support-info-card">
+                <h3>Registered Email</h3>
+                {% if has_registered_email %}
+                    <p>This message will be linked to your account email so the admin can contact you back.</p>
+                {% else %}
+                    <p>Add an email in your account before sending a support request. You can still open this page and prepare the message now.</p>
+                {% endif %}
+                <div class="student-form-group">
+                    <label for="supportRegisteredEmail">Email Address</label>
+                    <input type="email" id="supportRegisteredEmail" value="{{ registered_email }}" readonly>
+                </div>
+            </div>
+
+            <div class="student-settings-panel support-info-card">
+                <h3>Need Help Fast?</h3>
+                <p>Use a clear subject and enough detail so the admin can understand the issue without follow-up delays.</p>
+            </div>
+        </div>
+
+        <div class="student-form-group support-form-group">
+            <label for="supportTicketType">Request Type</label>
+            <select name="ticket_type" id="supportTicketType" required>
+                {% for value, label in support_types %}
+                    <option value="{{ value }}">{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="student-form-group support-form-group">
+            <label for="supportSubject">Subject</label>
+            <input type="text" name="subject" id="supportSubject" maxlength="120" placeholder="Example: Camera access issue during exam" required>
+        </div>
+
+        <div class="student-form-group support-form-group">
+            <label for="supportMessage">Message</label>
+            <textarea name="message" id="supportMessage" rows="7" placeholder="Describe the issue, feedback, or request in detail." required></textarea>
+        </div>
+
+        <div class="student-submit-area support-submit-area">
+            <button type="submit" class="student-main-btn">Send To Admin Support</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

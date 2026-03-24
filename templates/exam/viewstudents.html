@@ -1,0 +1,36 @@
+{% extends "base_faculty.html" %}
+
+{% block body %}
+<section class="glass-card exam-form-card">
+    <div class="page-heading">
+        <p class="eyebrow">Summary</p>
+        <h1 class="page-title">Students</h1>
+        <p class="page-copy">Track how many exams each student has attended for the exams under your faculty account.</p>
+    </div>
+
+    {% if students %}
+        <div class="faculty-table-wrap">
+            <table class="faculty-table">
+                <thead>
+                    <tr>
+                        <th>Student Name</th>
+                        <th>Exams Attended</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for key, values in students.items %}
+                        <tr>
+                            <td>{{ key }}</td>
+                            <td>{{ values }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="faculty-empty-state">
+            No students exist in the database yet.
+        </div>
+    {% endif %}
+</section>
+{% endblock %}

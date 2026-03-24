@@ -1,0 +1,66 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+  .rankrush-admin-quicklink {
+    margin: 0 0 20px;
+    padding: 14px 16px;
+    border: 1px solid #ddd;
+    background: #fff;
+  }
+
+  .rankrush-admin-quicklink h2 {
+    margin: 0 0 6px;
+  }
+
+  .rankrush-admin-quicklink p {
+    margin: 0 0 10px;
+    max-width: 780px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <section class="rankrush-admin-quicklink module">
+    <h2>Proctoring ML Test</h2>
+    <p>Open a safe admin-side test page for webcam face detection, gaze check, microphone activity, and live spectrum visualization without starting an exam.</p>
+    <p><a href="{% url 'admin:proctor-ml-test' %}" class="button">Open Proctoring Test</a></p>
+  </section>
+
+  {% if app_list %}
+    {% for app in app_list %}
+      <div class="app-{{ app.app_label }} module">
+        <table>
+          <caption>
+            <a href="{{ app.app_url }}" class="section" title="{{ app.name }}">{{ app.name }}</a>
+          </caption>
+          {% for model in app.models %}
+            <tr class="model-{{ model.object_name|lower }}">
+              {% if model.admin_url %}
+                <th scope="row"><a href="{{ model.admin_url }}">{{ model.name }}</a></th>
+              {% else %}
+                <th scope="row">{{ model.name }}</th>
+              {% endif %}
+              {% if model.add_url %}
+                <td><a href="{{ model.add_url }}" class="addlink">{% trans 'Add' %}</a></td>
+              {% else %}
+                <td></td>
+              {% endif %}
+              {% if model.admin_url %}
+                <td><a href="{{ model.admin_url }}" class="changelink">{% trans 'Change' %}</a></td>
+              {% else %}
+                <td></td>
+              {% endif %}
+            </tr>
+          {% endfor %}
+        </table>
+      </div>
+    {% endfor %}
+  {% else %}
+    <p>{% trans "You don’t have permission to view or edit anything." %}</p>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,116 @@
+{% extends "base_faculty.html" %}
+
+{% block body %}
+<section class="glass-card exam-form-card">
+    <div class="page-heading">
+        <p class="eyebrow">Exam Setup</p>
+        <h1 class="page-title">Schedule Exam</h1>
+        <p class="page-copy">Create the final exam by naming it, attaching a question paper, and setting the total marks and exam timings.</p>
+    </div>
+
+    <form method="POST" action="{% url 'view_exams' %}" class="question-paper-form">
+        {% csrf_token %}
+
+        {% if examform.non_field_errors %}
+            <div class="form-alert">
+                {{ examform.non_field_errors }}
+            </div>
+        {% endif %}
+
+        <div class="form-group">
+            <label for="{{ examform.name.id_for_label }}">Exam Name</label>
+            {{ examform.name }}
+            {% if examform.name.errors %}
+                <div class="field-error">{{ examform.name.errors }}</div>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label for="{{ examform.question_paper.id_for_label }}">Question Paper</label>
+            <p class="field-hint">Click to select question paper.</p>
+            {{ examform.question_paper }}
+            {% if examform.question_paper.errors %}
+                <div class="field-error">{{ examform.question_paper.errors }}</div>
+            {% endif %}
+        </div>
+
+        <div class="form-grid-two">
+            <div class="form-group">
+                <label for="{{ examform.total_marks.id_for_label }}">Total Marks</label>
+                {{ examform.total_marks }}
+                {% if examform.total_marks.errors %}
+                    <div class="field-error">{{ examform.total_marks.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ examform.start_time.id_for_label }}">Start Time</label>
+                <p class="field-hint">Pick the exam start date and time.</p>
+                <div class="picker-input-wrap">
+                    {{ examform.start_time }}
+                    <button type="button" class="picker-mini-btn" data-picker-target="{{ examform.start_time.id_for_label }}" aria-label="Open start time picker">Pick</button>
+                </div>
+                {% if examform.start_time.errors %}
+                    <div class="field-error">{{ examform.start_time.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="{{ examform.end_time.id_for_label }}">End Time</label>
+            <p class="field-hint">Pick the exam end date and time.</p>
+            <div class="picker-input-wrap">
+                {{ examform.end_time }}
+                <button type="button" class="picker-mini-btn" data-picker-target="{{ examform.end_time.id_for_label }}" aria-label="Open end time picker">Pick</button>
+            </div>
+            {% if examform.end_time.errors %}
+                <div class="field-error">{{ examform.end_time.errors }}</div>
+            {% endif %}
+        </div>
+
+        <div class="submit-area">
+            <button type="submit" class="main-btn">Save Exam</button>
+        </div>
+    </form>
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    ['{{ examform.start_time.id_for_label }}', '{{ examform.end_time.id_for_label }}'].forEach(function(id) {
+        const input = document.getElementById(id);
+        if (!input) {
+            return;
+        }
+        input.type = 'datetime-local';
+        input.step = 1;
+
+        if (input.value) {
+            const parsed = new Date(input.value);
+            if (!Number.isNaN(parsed.getTime())) {
+                const year = parsed.getFullYear();
+                const month = String(parsed.getMonth() + 1).padStart(2, '0');
+                const day = String(parsed.getDate()).padStart(2, '0');
+                const hours = String(parsed.getHours()).padStart(2, '0');
+                const minutes = String(parsed.getMinutes()).padStart(2, '0');
+                input.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+            }
+        }
+    });
+
+    document.querySelectorAll('.picker-mini-btn').forEach(function(button) {
+        button.addEventListener('click', function() {
+            const input = document.getElementById(button.dataset.pickerTarget);
+            if (!input) {
+                return;
+            }
+            input.focus();
+            if (typeof input.showPicker === 'function') {
+                input.showPicker();
+            } else {
+                input.click();
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

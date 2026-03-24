@@ -1,0 +1,82 @@
+{% extends "base_faculty.html" %}
+
+{% block body %}
+<section class="glass-card exam-form-card">
+    <div class="page-heading">
+        <p class="eyebrow">Attempt Detail</p>
+        <h1 class="page-title">{% firstof attempt.student.get_full_name attempt.student.username %} - {{ attempt.examname }}</h1>
+        <p class="page-copy">Review submitted answers and suspicious signals for this completed attempt.</p>
+    </div>
+
+    <div class="faculty-monitor-grid faculty-monitor-grid-tight">
+        <article class="faculty-monitor-card">
+            <span>Score</span>
+            <strong>{{ attempt.score }}</strong>
+        </article>
+        <article class="faculty-monitor-card">
+            <span>Question Paper</span>
+            <strong>{{ attempt.qpaper.qPaperTitle }}</strong>
+        </article>
+        <article class="faculty-monitor-card">
+            <span>Risk</span>
+            <strong>{{ attempt.risk_level }}</strong>
+        </article>
+        <article class="faculty-monitor-card">
+            <span>Violation Logs</span>
+            <strong>{{ logs|length }}</strong>
+        </article>
+    </div>
+
+    <div class="saved-paper-list">
+        <h2 class="saved-paper-title">Submitted Answers</h2>
+        {% if questions %}
+            <div class="saved-paper-grid">
+                {% for question in questions %}
+                    <article class="saved-paper-item">
+                        <strong>{{ forloop.counter }}. {{ question.question }}</strong>
+                        <span>Chosen: {{ question.choice }}</span>
+                        <span>Correct: {{ question.answer }}</span>
+                        <span>Marks: {{ question.max_marks }}</span>
+                    </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="faculty-empty-state">
+                No submitted question data is available for this attempt.
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="saved-paper-list">
+        <h2 class="saved-paper-title">Violation History</h2>
+        {% if logs %}
+            <div class="faculty-table-wrap">
+                <table class="faculty-table">
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Count</th>
+                            <th>Detail</th>
+                            <th>Logged At</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in logs %}
+                            <tr>
+                                <td>{{ log.violation_type|title }}</td>
+                                <td>{{ log.violation_count }}</td>
+                                <td>{{ log.detail|default:"-" }}</td>
+                                <td>{{ log.created_at }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="faculty-empty-state">
+                No violation history was recorded for this attempt.
+            </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

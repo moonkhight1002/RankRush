@@ -1,0 +1,61 @@
+{% extends "base_faculty.html" %}
+
+{% block body %}
+<section class="glass-card exam-form-card">
+    <div class="page-heading">
+        <p class="eyebrow">Summary</p>
+        <h1 class="page-title">Active Sessions</h1>
+        <p class="page-copy">Monitor student exam activity based on the active session lock and heartbeat updates.</p>
+    </div>
+
+    <div class="faculty-monitor-grid faculty-monitor-grid-tight">
+        <article class="faculty-monitor-card">
+            <span>Active</span>
+            <strong>{{ summary.active }}</strong>
+        </article>
+        <article class="faculty-monitor-card">
+            <span>Stale</span>
+            <strong>{{ summary.stale }}</strong>
+        </article>
+        <article class="faculty-monitor-card">
+            <span>Completed</span>
+            <strong>{{ summary.completed }}</strong>
+        </article>
+    </div>
+
+    {% if sessions %}
+        <div class="faculty-table-wrap">
+            <table class="faculty-table">
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Exam</th>
+                        <th>Question Paper</th>
+                        <th>Status</th>
+                        <th>Started</th>
+                        <th>Last Seen</th>
+                        <th>Completed</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for session in sessions %}
+                        <tr>
+                            <td>{% firstof session.student.get_full_name session.student.username %}</td>
+                            <td>{{ session.exam_name }}</td>
+                            <td>{% if session.qpaper %}{{ session.qpaper.qPaperTitle }}{% else %}-{% endif %}</td>
+                            <td><span class="risk-badge risk-{{ session.status }}">{{ session.get_status_display }}</span></td>
+                            <td>{{ session.started_at }}</td>
+                            <td>{{ session.last_seen_at }}</td>
+                            <td>{% if session.completed_at %}{{ session.completed_at }}{% else %}-{% endif %}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="faculty-empty-state">
+            No active or recent exam sessions are available yet.
+        </div>
+    {% endif %}
+</section>
+{% endblock %}

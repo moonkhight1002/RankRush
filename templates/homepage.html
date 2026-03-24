@@ -1,0 +1,45 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>RankRush</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="{% static 'img/book.png' %}?v=2">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/home.css' %}">
+</head>
+<body>
+<div class="glass-container">
+    <h1 class="main-title">RankRush</h1>
+    <p class="subtitle">Smart Online Examination System</p>
+
+    <div class="portal-sections">
+        <div class="portal-card faculty">
+            <div class="portal-icon">
+                <i class="fas fa-chalkboard-teacher" aria-hidden="true"></i>
+            </div>
+            <h2>Faculty</h2>
+            <p>Create exams, monitor students, and evaluate results.</p>
+            <div class="btn-group">
+                <a href="{% url 'portal-entry' 'faculty-login' %}"><button class="primary">Login</button></a>
+                <a href="{% url 'portal-entry' 'faculty-register' %}"><button class="outline">Sign Up</button></a>
+            </div>
+        </div>
+
+        <div class="portal-card student">
+            <div class="portal-icon">
+                <i class="fas fa-user-graduate" aria-hidden="true"></i>
+            </div>
+            <h2>Student</h2>
+            <p>Attend exams, view results, and track performance.</p>
+            <div class="btn-group">
+                <a href="{% url 'portal-entry' 'student-login' %}"><button class="primary">Login</button></a>
+                <a href="{% url 'portal-entry' 'student-register' %}"><button class="outline">Sign Up</button></a>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

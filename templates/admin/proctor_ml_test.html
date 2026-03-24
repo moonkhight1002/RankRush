@@ -1,0 +1,990 @@
+{% extends "admin/base_site.html" %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+  .proctor-test-shell {
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+
+  .proctor-test-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.8fr) minmax(280px, 0.9fr);
+    gap: 20px;
+  }
+
+  .proctor-test-panel,
+  .proctor-test-status {
+    border: 1px solid #ddd;
+    background: #fff;
+    padding: 16px;
+    box-sizing: border-box;
+  }
+
+  .proctor-test-actions,
+  .proctor-test-calibration {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .proctor-test-actions button,
+  .proctor-test-calibration button {
+    min-width: 160px;
+  }
+
+  .proctor-test-spectrum-wrap {
+    padding: 10px;
+    margin-bottom: 14px;
+    border: 1px solid #ddd;
+    background: #fafafa;
+  }
+
+  .proctor-test-spectrum {
+    display: block;
+    width: 100%;
+    height: 96px;
+    background: #fff;
+  }
+
+  .proctor-test-video-wrap {
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    margin-bottom: 14px;
+    background: #10182f;
+  }
+
+  .proctor-test-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scaleX(-1);
+  }
+
+  .proctor-test-overlay {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+
+  .proctor-test-message {
+    padding: 12px;
+    border: 1px solid #ddd;
+    background: #fafafa;
+    line-height: 1.6;
+  }
+
+  .proctor-test-status table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .proctor-test-status th,
+  .proctor-test-status td {
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .proctor-test-status th {
+    width: 38%;
+  }
+
+  .proctor-test-status td code {
+    font-size: 12px;
+  }
+
+  @media (max-width: 980px) {
+    .proctor-test-layout {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content_title %}<h1>Proctoring ML Test</h1>{% endblock %}
+
+{% block content %}
+<form method="post" id="proctorMlSettingsForm">
+{% csrf_token %}
+<div id="content-main" class="proctor-test-shell">
+  <div class="module">
+    <p>Use this admin-side page to test webcam face detection, gaze tracking, microphone activity, and live audio visualization without starting an exam.</p>
+  </div>
+
+  <div class="proctor-test-layout">
+    <section class="proctor-test-panel">
+      <div class="proctor-test-actions">
+        <button type="button" id="startMlTestButton">Start Camera + Mic Test</button>
+        <button type="button" id="stopMlTestButton" disabled>Stop Test</button>
+      </div>
+
+      <div class="proctor-test-calibration">
+        <button type="button" id="calibrateQuietButton" disabled>Calibrate Quiet Room</button>
+        <button type="button" id="recheckAudioButton" disabled>Test Current Noise</button>
+      </div>
+
+      <div class="proctor-test-message" style="margin-bottom: 14px;">
+        <strong>Range Separation Calibration</strong>
+        <p style="margin: 8px 0 12px;">Capture 12-second samples for your normal fan-on room, ambient disturbance, and actual speaking. The page will suggest separated thresholds based on those ranges.</p>
+        <div class="proctor-test-calibration">
+          <button type="button" id="captureQuietRangeButton" disabled>Capture Quiet Range</button>
+          <button type="button" id="captureAmbientRangeButton" disabled>Capture Ambient Range</button>
+          <button type="button" id="captureSpeechRangeButton" disabled>Capture Speech Range</button>
+          <button type="button" id="applyRangeThresholdsButton" disabled>Finalize And Save</button>
+        </div>
+        <table style="width: 100%; border-collapse: collapse;">
+          <tbody>
+            <tr>
+              <th style="text-align:left; padding: 6px 10px 6px 0;">Quiet Range</th>
+              <td><code id="quietRangeReadout">{{ proctoring_settings.quiet_range_summary|default:"Not captured" }}</code></td>
+            </tr>
+            <tr>
+              <th style="text-align:left; padding: 6px 10px 6px 0;">Ambient Range</th>
+              <td><code id="ambientRangeReadout">{{ proctoring_settings.ambient_range_summary|default:"Not captured" }}</code></td>
+            </tr>
+            <tr>
+              <th style="text-align:left; padding: 6px 10px 6px 0;">Speech Range</th>
+              <td><code id="speechRangeReadout">{{ proctoring_settings.speech_range_summary|default:"Not captured" }}</code></td>
+            </tr>
+          </tbody>
+        </table>
+        <input type="hidden" id="idleBaselineInput" name="idle_baseline" value="{{ proctoring_settings.idle_baseline|floatformat:3 }}">
+        <input type="hidden" id="speechThresholdInput" name="speech_threshold" value="{{ proctoring_settings.speech_threshold|floatformat:3 }}">
+        <input type="hidden" id="ambientThresholdInput" name="ambient_threshold" value="{{ proctoring_settings.ambient_threshold|floatformat:3 }}">
+        <input type="hidden" id="voiceMatchInput" name="voice_match_threshold" value="{{ proctoring_settings.voice_match_threshold|floatformat:3 }}">
+        <input type="hidden" id="quietRangeSummaryInput" name="quiet_range_summary" value="{{ proctoring_settings.quiet_range_summary }}">
+        <input type="hidden" id="ambientRangeSummaryInput" name="ambient_range_summary" value="{{ proctoring_settings.ambient_range_summary }}">
+        <input type="hidden" id="speechRangeSummaryInput" name="speech_range_summary" value="{{ proctoring_settings.speech_range_summary }}">
+        <table style="width: 100%; border-collapse: collapse; margin-top: 12px;">
+          <tbody>
+            <tr>
+              <th style="text-align:left; padding: 6px 10px 6px 0;">Precheck Stability (ms)</th>
+              <td><input type="number" name="precheck_ms" id="precheckMsInput" min="500" max="8000" step="100" value="{{ proctoring_settings.precheck_ms }}" style="width: 120px;"></td>
+            </tr>
+            <tr>
+              <th style="text-align:left; padding: 6px 10px 6px 0;">No Face Delay (ms)</th>
+              <td><input type="number" name="no_face_ms" id="noFaceMsInput" min="500" max="15000" step="100" value="{{ proctoring_settings.no_face_ms }}" style="width: 120px;"></td>
+            </tr>
+            <tr>
+              <th style="text-align:left; padding: 6px 10px 6px 0;">Multiple Faces Delay (ms)</th>
+              <td><input type="number" name="multi_face_ms" id="multiFaceMsInput" min="500" max="15000" step="100" value="{{ proctoring_settings.multi_face_ms }}" style="width: 120px;"></td>
+            </tr>
+            <tr>
+              <th style="text-align:left; padding: 6px 10px 6px 0;">Gaze Away Delay (ms)</th>
+              <td><input type="number" name="gaze_away_ms" id="gazeAwayMsInput" min="500" max="15000" step="100" value="{{ proctoring_settings.gaze_away_ms }}" style="width: 120px;"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="proctor-test-spectrum-wrap">
+        <canvas id="adminAudioSpectrum" class="proctor-test-spectrum" width="640" height="96"></canvas>
+      </div>
+
+      <div class="proctor-test-video-wrap">
+        <video id="adminProctorVideo" class="proctor-test-video" autoplay muted playsinline></video>
+        <canvas id="adminProctorOverlay" class="proctor-test-overlay" width="960" height="720"></canvas>
+      </div>
+
+      <div class="proctor-test-message" id="adminMlTestMessage">
+        Click <strong>Start Camera + Mic Test</strong> and allow both permissions. You can then calibrate the noise floor and test face, gaze, and audio behavior.
+      </div>
+    </section>
+
+    <aside class="proctor-test-status">
+      <table>
+        <tbody>
+          <tr><th>Camera</th><td id="adminCameraStatus">Waiting</td></tr>
+          <tr><th>Microphone</th><td id="adminMicStatus">Waiting</td></tr>
+          <tr><th>Faces</th><td id="adminFaceStatus">Waiting</td></tr>
+          <tr><th>Gaze</th><td id="adminGazeStatus">Waiting</td></tr>
+          <tr><th>Audio Activity</th><td id="adminAudioStatus">Quiet</td></tr>
+          <tr><th>Mode</th><td id="adminModelStatus">Idle</td></tr>
+          <tr><th>Baseline</th><td><code id="adminAudioBaseline">0.018</code></td></tr>
+          <tr><th>Speech Threshold</th><td><code id="adminSpeechThreshold">0.120</code></td></tr>
+          <tr><th>Ambient Threshold</th><td><code id="adminNoiseThreshold">0.170</code></td></tr>
+          <tr><th>Live Level</th><td><code id="adminAudioLevel">0.000</code></td></tr>
+          <tr><th>Voice Match</th><td><code id="adminVoiceLikelihood">0.000</code></td></tr>
+        </tbody>
+      </table>
+    </aside>
+  </div>
+</div>
+</form>
+
+<script type="module">
+import { FaceLandmarker, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/vision_bundle.mjs";
+
+const settingsForm = document.getElementById("proctorMlSettingsForm");
+const startButton = document.getElementById("startMlTestButton");
+const stopButton = document.getElementById("stopMlTestButton");
+const calibrateQuietButton = document.getElementById("calibrateQuietButton");
+const recheckAudioButton = document.getElementById("recheckAudioButton");
+const messageEl = document.getElementById("adminMlTestMessage");
+const videoEl = document.getElementById("adminProctorVideo");
+const overlayCanvas = document.getElementById("adminProctorOverlay");
+const overlayContext = overlayCanvas.getContext("2d");
+const cameraStatusEl = document.getElementById("adminCameraStatus");
+const micStatusEl = document.getElementById("adminMicStatus");
+const faceStatusEl = document.getElementById("adminFaceStatus");
+const gazeStatusEl = document.getElementById("adminGazeStatus");
+const audioStatusEl = document.getElementById("adminAudioStatus");
+const modelStatusEl = document.getElementById("adminModelStatus");
+const baselineEl = document.getElementById("adminAudioBaseline");
+const speechThresholdEl = document.getElementById("adminSpeechThreshold");
+const noiseThresholdEl = document.getElementById("adminNoiseThreshold");
+const liveLevelEl = document.getElementById("adminAudioLevel");
+const voiceLikelihoodEl = document.getElementById("adminVoiceLikelihood");
+const idleBaselineInput = document.getElementById("idleBaselineInput");
+const speechThresholdInput = document.getElementById("speechThresholdInput");
+const ambientThresholdInput = document.getElementById("ambientThresholdInput");
+const voiceMatchInput = document.getElementById("voiceMatchInput");
+const quietRangeSummaryInput = document.getElementById("quietRangeSummaryInput");
+const ambientRangeSummaryInput = document.getElementById("ambientRangeSummaryInput");
+const speechRangeSummaryInput = document.getElementById("speechRangeSummaryInput");
+const captureQuietRangeButton = document.getElementById("captureQuietRangeButton");
+const captureAmbientRangeButton = document.getElementById("captureAmbientRangeButton");
+const captureSpeechRangeButton = document.getElementById("captureSpeechRangeButton");
+const applyRangeThresholdsButton = document.getElementById("applyRangeThresholdsButton");
+const quietRangeReadout = document.getElementById("quietRangeReadout");
+const ambientRangeReadout = document.getElementById("ambientRangeReadout");
+const speechRangeReadout = document.getElementById("speechRangeReadout");
+const spectrumCanvas = document.getElementById("adminAudioSpectrum");
+const spectrumContext = spectrumCanvas.getContext("2d");
+
+let stream = null;
+let audioContext = null;
+let audioAnalyser = null;
+let audioDataArray = null;
+let frequencyDataArray = null;
+let landmarker = null;
+let detectionFrame = null;
+let audioFrame = null;
+let latestAudioState = "Quiet";
+let audioBaseline = Number("{{ proctoring_settings.idle_baseline|floatformat:3 }}");
+let audioCalibrationStart = null;
+let audioCalibrationReady = false;
+let forceCalibrationUntil = null;
+let forceCalibrationSamples = [];
+let forceNoiseProbeUntil = null;
+let forceNoiseProbeSamples = [];
+let latestVoiceLikelihood = 0;
+let latestVoiceBandLevel = 0;
+let latestMouthActivity = 0;
+let latestMouthRatio = 0;
+let latestGazeOnScreen = false;
+let displayedGazeOnScreen = false;
+let pendingGazeOnScreen = false;
+let pendingGazeSince = 0;
+let speechDetectedSince = null;
+let activeRangeCapture = null;
+const rangeCaptureSamples = {
+  quiet: [],
+  ambient: [],
+  speech: [],
+};
+let configuredSpeechThreshold = Number("{{ proctoring_settings.speech_threshold|floatformat:3 }}");
+let configuredAmbientThreshold = Number("{{ proctoring_settings.ambient_threshold|floatformat:3 }}");
+let configuredVoiceMatchThreshold = Number("{{ proctoring_settings.voice_match_threshold|floatformat:3 }}");
+const eyeLandmarkIndices = [33, 133, 159, 145, 362, 263, 386, 374, 468, 469, 470, 471, 472, 473, 474, 475, 476, 477];
+const mouthLandmarkIndices = [13, 14, 78, 308, 61, 291, 0, 17];
+const proctorUiThresholds = {
+  gazeMs: 650,
+};
+
+function setMessage(text) {
+  messageEl.innerHTML = text;
+}
+
+function formatRangeStats(samples) {
+  if (!samples.length) {
+    return "Not captured";
+  }
+  const avg = samples.reduce(function(acc, value) { return acc + value; }, 0) / samples.length;
+  const max = Math.max.apply(null, samples);
+  const min = Math.min.apply(null, samples);
+  return `avg ${avg.toFixed(3)} | min ${min.toFixed(3)} | max ${max.toFixed(3)}`;
+}
+
+function refreshRangeReadouts() {
+  const quietSummary = rangeCaptureSamples.quiet.length ? formatRangeStats(rangeCaptureSamples.quiet) : (quietRangeSummaryInput.value || "Not captured");
+  const ambientSummary = rangeCaptureSamples.ambient.length ? formatRangeStats(rangeCaptureSamples.ambient) : (ambientRangeSummaryInput.value || "Not captured");
+  const speechSummary = rangeCaptureSamples.speech.length ? formatRangeStats(rangeCaptureSamples.speech) : (speechRangeSummaryInput.value || "Not captured");
+  quietRangeReadout.textContent = quietSummary;
+  ambientRangeReadout.textContent = ambientSummary;
+  speechRangeReadout.textContent = speechSummary;
+  applyRangeThresholdsButton.disabled = !(
+    rangeCaptureSamples.quiet.length &&
+    rangeCaptureSamples.ambient.length &&
+    rangeCaptureSamples.speech.length
+  );
+}
+
+function updateThresholdReadout(level) {
+  baselineEl.textContent = audioBaseline.toFixed(3);
+  speechThresholdEl.textContent = getDynamicThreshold(configuredSpeechThreshold).toFixed(3);
+  noiseThresholdEl.textContent = getDynamicThreshold(configuredAmbientThreshold).toFixed(3);
+  liveLevelEl.textContent = level.toFixed(3);
+  voiceLikelihoodEl.textContent = latestVoiceLikelihood.toFixed(3);
+}
+
+function getStableGazeState(now, faceCount) {
+  const rawGaze = faceCount === 1 ? latestGazeOnScreen : false;
+  if (rawGaze !== pendingGazeOnScreen) {
+    pendingGazeOnScreen = rawGaze;
+    pendingGazeSince = now;
+  }
+  if (displayedGazeOnScreen !== rawGaze && now - pendingGazeSince >= proctorUiThresholds.gazeMs) {
+    displayedGazeOnScreen = rawGaze;
+  }
+  return faceCount === 1 ? displayedGazeOnScreen : false;
+}
+
+function averagePoint(landmarks, indices) {
+  const total = indices.reduce(function(acc, index) {
+    acc.x += landmarks[index].x;
+    acc.y += landmarks[index].y;
+    return acc;
+  }, { x: 0, y: 0 });
+  return { x: total.x / indices.length, y: total.y / indices.length };
+}
+
+function isGazeOnScreen(landmarks) {
+    const leftIris = averagePoint(landmarks, [468, 469, 470, 471, 472]);
+    const rightIris = averagePoint(landmarks, [473, 474, 475, 476, 477]);
+
+    const leftEyeHorizontal = (leftIris.x - landmarks[33].x) / Math.max(0.001, landmarks[133].x - landmarks[33].x);
+    const rightEyeHorizontal = (rightIris.x - landmarks[362].x) / Math.max(0.001, landmarks[263].x - landmarks[362].x);
+    const leftEyeVertical = (leftIris.y - landmarks[159].y) / Math.max(0.001, landmarks[145].y - landmarks[159].y);
+    const rightEyeVertical = (rightIris.y - landmarks[386].y) / Math.max(0.001, landmarks[374].y - landmarks[386].y);
+
+    const horizontalAverage = (leftEyeHorizontal + rightEyeHorizontal) / 2;
+    const verticalAverage = (leftEyeVertical + rightEyeVertical) / 2;
+    const eyeBalance = Math.abs(leftEyeHorizontal - rightEyeHorizontal);
+    const noseToLeftEye = Math.abs(landmarks[1].x - landmarks[33].x);
+    const noseToRightEye = Math.abs(landmarks[263].x - landmarks[1].x);
+    const headTurnRatio = noseToLeftEye / Math.max(0.001, noseToRightEye);
+
+    return horizontalAverage > 0.29 &&
+      horizontalAverage < 0.71 &&
+      verticalAverage > 0.23 &&
+      verticalAverage < 0.77 &&
+      eyeBalance < 0.24 &&
+      headTurnRatio > 0.64 &&
+      headTurnRatio < 1.5;
+  }
+
+function getMouthActivity(landmarks) {
+  const upperLip = landmarks[13];
+  const lowerLip = landmarks[14];
+  const leftMouth = landmarks[78];
+  const rightMouth = landmarks[308];
+  const mouthHeight = Math.abs(lowerLip.y - upperLip.y);
+  const mouthWidth = Math.max(Math.abs(rightMouth.x - leftMouth.x), 0.0001);
+  return mouthHeight / mouthWidth;
+}
+
+function updateMouthActivity(landmarks) {
+  const currentRatio = getMouthActivity(landmarks);
+  const movementDelta = Math.abs(currentRatio - latestMouthRatio);
+  latestMouthRatio = currentRatio;
+  latestMouthActivity = (latestMouthActivity * 0.72) + (movementDelta * 6.2) + (currentRatio * 0.22);
+}
+
+function resizeOverlayToVideo() {
+  if (!overlayCanvas || !videoEl) {
+    return;
+  }
+  const rect = videoEl.getBoundingClientRect();
+  const width = Math.max(1, Math.round(rect.width));
+  const height = Math.max(1, Math.round(rect.height));
+  if (overlayCanvas.width !== width || overlayCanvas.height !== height) {
+    overlayCanvas.width = width;
+    overlayCanvas.height = height;
+  }
+}
+
+function clearOverlay() {
+  resizeOverlayToVideo();
+  overlayContext.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+}
+
+function drawLandmarkPoint(landmark, color, radius) {
+  const x = (1 - landmark.x) * overlayCanvas.width;
+  const y = landmark.y * overlayCanvas.height;
+  overlayContext.beginPath();
+  overlayContext.arc(x, y, radius, 0, Math.PI * 2);
+  overlayContext.fillStyle = color;
+  overlayContext.fill();
+}
+
+function drawFaceOverlay(faceLandmarks) {
+  resizeOverlayToVideo();
+  overlayContext.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+
+  faceLandmarks.forEach(function(landmarks, faceIndex) {
+    landmarks.forEach(function(landmark) {
+      drawLandmarkPoint(landmark, "rgba(124, 205, 255, 0.45)", 1.6);
+    });
+
+    eyeLandmarkIndices.forEach(function(index) {
+      if (landmarks[index]) {
+        drawLandmarkPoint(landmarks[index], faceIndex === 0 ? "rgba(255, 90, 90, 0.95)" : "rgba(255, 180, 90, 0.95)", 3.2);
+      }
+    });
+
+    mouthLandmarkIndices.forEach(function(index) {
+      if (landmarks[index]) {
+        drawLandmarkPoint(landmarks[index], faceIndex === 0 ? "rgba(255, 74, 160, 0.95)" : "rgba(255, 180, 90, 0.95)", 3.4);
+      }
+    });
+  });
+}
+
+function drawSpectrum(level, stateLabel, waveform) {
+  const width = spectrumCanvas.width;
+  const height = spectrumCanvas.height;
+  spectrumContext.clearRect(0, 0, width, height);
+  const backgroundGradient = spectrumContext.createLinearGradient(0, 0, width, height);
+  backgroundGradient.addColorStop(0, "rgba(24, 53, 124, 0.16)");
+  backgroundGradient.addColorStop(0.46, "rgba(43, 97, 210, 0.11)");
+  backgroundGradient.addColorStop(1, "rgba(22, 151, 242, 0.15)");
+  spectrumContext.fillStyle = backgroundGradient;
+  spectrumContext.fillRect(0, 0, width, height);
+
+  const fillGradient = spectrumContext.createLinearGradient(0, 0, width, 0);
+  fillGradient.addColorStop(0, "rgba(125, 99, 255, 0.20)");
+  fillGradient.addColorStop(0.34, "rgba(194, 114, 255, 0.34)");
+  fillGradient.addColorStop(0.5, "rgba(255, 88, 211, 0.44)");
+  fillGradient.addColorStop(0.74, "rgba(99, 177, 255, 0.30)");
+  fillGradient.addColorStop(1, "rgba(111, 221, 255, 0.16)");
+  const gradient = spectrumContext.createLinearGradient(0, 0, width, 0);
+  gradient.addColorStop(0, "rgba(255,255,255,0)");
+  gradient.addColorStop(0.22, "rgba(196, 142, 255, 0.84)");
+  gradient.addColorStop(0.5, "rgba(255, 146, 232, 0.98)");
+  gradient.addColorStop(0.76, "rgba(124, 205, 255, 0.84)");
+  gradient.addColorStop(1, "rgba(255,255,255,0)");
+
+  const baselineY = height / 2;
+  const samples = waveform.length ? waveform : [0];
+  const stepX = width / Math.max(samples.length - 1, 1);
+  const amplitude = Math.max(12, Math.min(height * 0.34, 14 + level * 145));
+
+  spectrumContext.strokeStyle = "rgba(255,255,255,0.16)";
+  spectrumContext.lineWidth = 1.1;
+  spectrumContext.beginPath();
+  spectrumContext.moveTo(0, baselineY);
+  spectrumContext.lineTo(width, baselineY);
+  spectrumContext.stroke();
+
+  spectrumContext.beginPath();
+  for (let i = 0; i < samples.length; i += 1) {
+    const x = i * stepX;
+    const y = baselineY - (samples[i] * amplitude);
+    if (i === 0) {
+      spectrumContext.moveTo(x, y);
+    } else {
+      spectrumContext.lineTo(x, y);
+    }
+  }
+  for (let i = samples.length - 1; i >= 0; i -= 1) {
+    const x = i * stepX;
+    const y = baselineY + (samples[i] * amplitude);
+    spectrumContext.lineTo(x, y);
+  }
+  spectrumContext.closePath();
+  spectrumContext.fillStyle = fillGradient;
+  spectrumContext.fill();
+
+  spectrumContext.strokeStyle = gradient;
+  spectrumContext.shadowBlur = 22;
+  spectrumContext.shadowColor = "rgba(255, 111, 222, 0.62)";
+  spectrumContext.lineWidth = 4;
+  spectrumContext.lineJoin = "round";
+  spectrumContext.lineCap = "round";
+  spectrumContext.beginPath();
+  for (let i = 0; i < samples.length; i += 1) {
+    const x = i * stepX;
+    const y = baselineY - samples[i] * amplitude * 0.92;
+    if (i === 0) {
+      spectrumContext.moveTo(x, y);
+    } else {
+      spectrumContext.lineTo(x, y);
+    }
+  }
+  spectrumContext.stroke();
+  spectrumContext.shadowBlur = 0;
+
+  const centerLineGradient = spectrumContext.createLinearGradient(0, 0, width, 0);
+  centerLineGradient.addColorStop(0, "rgba(255,255,255,0)");
+  centerLineGradient.addColorStop(0.26, "rgba(223, 196, 255, 0.62)");
+  centerLineGradient.addColorStop(0.5, "rgba(255, 234, 249, 0.95)");
+  centerLineGradient.addColorStop(0.72, "rgba(179, 229, 255, 0.64)");
+  centerLineGradient.addColorStop(1, "rgba(255,255,255,0)");
+  spectrumContext.strokeStyle = centerLineGradient;
+  spectrumContext.lineWidth = 2.2;
+  spectrumContext.beginPath();
+  spectrumContext.moveTo(0, baselineY);
+  spectrumContext.lineTo(width, baselineY);
+  spectrumContext.stroke();
+
+  spectrumContext.fillStyle = "rgba(255,255,255,0.92)";
+  spectrumContext.font = "600 12px Segoe UI, sans-serif";
+  spectrumContext.fillText(stateLabel, 14, 18);
+}
+
+function getDynamicThreshold(base) {
+  if (!audioCalibrationReady) {
+    return base;
+  }
+  return Math.max(base, audioBaseline + (base * 0.45));
+}
+
+function setHiddenValue(input, value, decimals) {
+  const formatted = Number(value).toFixed(decimals);
+  input.value = formatted;
+}
+
+function beginForcedCalibration(label) {
+  if (!audioAnalyser) {
+    return;
+  }
+  forceCalibrationUntil = Date.now() + 2600;
+  forceCalibrationSamples = [];
+  speechDetectedSince = null;
+  audioCalibrationReady = false;
+  audioCalibrationStart = Date.now();
+  modelStatusEl.textContent = "Calibrating";
+  latestAudioState = "Calibrating";
+  setMessage(label);
+}
+
+function beginNoiseProbe() {
+  if (!audioAnalyser) {
+    return;
+  }
+  forceNoiseProbeUntil = Date.now() + 2400;
+  forceNoiseProbeSamples = [];
+  modelStatusEl.textContent = "Measuring";
+  latestAudioState = "Measuring";
+  setMessage("Measuring the current audio environment. Let the music or noise keep playing for a moment.");
+}
+
+function beginRangeCapture(type, label) {
+  if (!audioAnalyser) {
+    return;
+  }
+  activeRangeCapture = {
+    type: type,
+    until: Date.now() + 12000,
+    label: label,
+    samples: [],
+  };
+  setMessage(`${label} capture started. Keep the room in that state for about 12 seconds.`);
+}
+
+function completeRangeCapture() {
+  if (!activeRangeCapture) {
+    return;
+  }
+  rangeCaptureSamples[activeRangeCapture.type] = activeRangeCapture.samples.slice();
+  const summary = formatRangeStats(activeRangeCapture.samples);
+  if (activeRangeCapture.type === "quiet") {
+    quietRangeSummaryInput.value = summary;
+  } else if (activeRangeCapture.type === "ambient") {
+    ambientRangeSummaryInput.value = summary;
+  } else if (activeRangeCapture.type === "speech") {
+    speechRangeSummaryInput.value = summary;
+  }
+  setMessage(`${activeRangeCapture.label} capture complete. Review the range readout, then capture the next state.`);
+  activeRangeCapture = null;
+  refreshRangeReadouts();
+}
+
+function applySuggestedThresholds() {
+  const quietSamples = rangeCaptureSamples.quiet;
+  const ambientSamples = rangeCaptureSamples.ambient;
+  const speechSamples = rangeCaptureSamples.speech;
+  if (!quietSamples.length || !ambientSamples.length || !speechSamples.length) {
+    return;
+  }
+
+  const quietAvg = quietSamples.reduce(function(acc, value) { return acc + value; }, 0) / quietSamples.length;
+  const quietMax = Math.max.apply(null, quietSamples);
+  const ambientMax = Math.max.apply(null, ambientSamples);
+  const speechMax = Math.max.apply(null, speechSamples);
+  const speechMin = Math.min.apply(null, speechSamples);
+
+  const suggestedBaseline = quietAvg;
+  const suggestedAmbient = Math.max(quietMax + 0.015, quietAvg + 0.02);
+  const suggestedSpeech = Math.max(suggestedAmbient + 0.02, speechMin - 0.015, ambientMax + 0.02);
+  const speechSpan = Math.max(speechMax - speechMin, 0.05);
+  const suggestedVoiceMatch = Math.min(8, Math.max(0.65, 0.58 + (speechSpan * 4)));
+
+  audioBaseline = suggestedBaseline;
+  configuredAmbientThreshold = suggestedAmbient;
+  configuredSpeechThreshold = suggestedSpeech;
+  configuredVoiceMatchThreshold = suggestedVoiceMatch;
+
+  setHiddenValue(idleBaselineInput, suggestedBaseline, 3);
+  setHiddenValue(ambientThresholdInput, suggestedAmbient, 3);
+  setHiddenValue(speechThresholdInput, suggestedSpeech, 3);
+  setHiddenValue(voiceMatchInput, suggestedVoiceMatch, 3);
+  updateThresholdReadout(Number(liveLevelEl.textContent || "0"));
+  setMessage("Suggested thresholds applied from the captured ranges and prepared for saving. Click <strong>Finalize And Save</strong> to use them in live exams.");
+}
+
+function finishForcedCalibration() {
+  if (!forceCalibrationSamples.length) {
+    return;
+  }
+  const sum = forceCalibrationSamples.reduce(function(acc, value) { return acc + value; }, 0);
+  const average = sum / forceCalibrationSamples.length;
+  audioBaseline = Math.max(0.01, Math.min(0.055, average * 0.78));
+  audioCalibrationReady = true;
+  forceCalibrationUntil = null;
+  forceCalibrationSamples = [];
+  modelStatusEl.textContent = "Live";
+  setMessage("Calibration updated. Test the mic again with room noise, music, or speech and watch the live thresholds on the right.");
+}
+
+function finishNoiseProbe() {
+  if (!forceNoiseProbeSamples.length) {
+    return;
+  }
+  const sum = forceNoiseProbeSamples.reduce(function(acc, value) { return acc + value; }, 0);
+  const average = sum / forceNoiseProbeSamples.length;
+  forceNoiseProbeUntil = null;
+  forceNoiseProbeSamples = [];
+  modelStatusEl.textContent = "Live";
+
+  if (average >= getDynamicThreshold(configuredAmbientThreshold)) {
+    setMessage(`Current noise test complete. The measured level was <strong>${average.toFixed(3)}</strong>, which is above the ambient sound threshold.`);
+  } else if (average >= getDynamicThreshold(configuredSpeechThreshold)) {
+    setMessage(`Current noise test complete. The measured level was <strong>${average.toFixed(3)}</strong>, which is above the speech/noise activity threshold.`);
+  } else {
+    setMessage(`Current noise test complete. The measured level was <strong>${average.toFixed(3)}</strong>, which is still below the current thresholds. Use <strong>Calibrate Quiet Room</strong> in silence first, then test music again.`);
+  }
+}
+
+function updateAudioLoop() {
+  if (!audioAnalyser || !audioDataArray || !frequencyDataArray) {
+    return;
+  }
+
+  audioAnalyser.getByteTimeDomainData(audioDataArray);
+  audioAnalyser.getByteFrequencyData(frequencyDataArray);
+  let sumSquares = 0;
+  let peak = 0;
+  const waveform = [];
+  const waveformStep = Math.max(1, Math.floor(audioDataArray.length / 72));
+
+  for (let i = 0; i < audioDataArray.length; i += 1) {
+    const normalized = (audioDataArray[i] - 128) / 128;
+    const magnitude = Math.abs(normalized);
+    sumSquares += normalized * normalized;
+    if (magnitude > peak) {
+      peak = magnitude;
+    }
+    if (i % waveformStep === 0) {
+      waveform.push(normalized);
+    }
+  }
+
+  const rms = audioDataArray.length ? Math.sqrt(sumSquares / audioDataArray.length) : 0;
+  let spectralSum = 0;
+  let spectralPeak = 0;
+  let lowBandSum = 0;
+  let lowBandCount = 0;
+  let voiceBandSum = 0;
+  let voiceBandCount = 0;
+  let upperBandSum = 0;
+  let upperBandCount = 0;
+  const frequencyResolution = audioContext ? (audioContext.sampleRate / audioAnalyser.fftSize) : 1;
+  for (let i = 3; i < frequencyDataArray.length; i += 1) {
+    const frequency = i * frequencyResolution;
+    const normalized = frequencyDataArray[i] / 255;
+    spectralSum += normalized;
+    if (normalized > spectralPeak) {
+      spectralPeak = normalized;
+    }
+    if (frequency >= 60 && frequency <= 220) {
+      lowBandSum += normalized;
+      lowBandCount += 1;
+    } else if (frequency >= 250 && frequency <= 3200) {
+      voiceBandSum += normalized;
+      voiceBandCount += 1;
+    } else if (frequency > 3200 && frequency <= 6000) {
+      upperBandSum += normalized;
+      upperBandCount += 1;
+    }
+  }
+  const spectralAverage = frequencyDataArray.length ? spectralSum / Math.max(frequencyDataArray.length - 3, 1) : 0;
+  const lowBandAverage = lowBandCount ? (lowBandSum / lowBandCount) : 0;
+  const voiceBandAverage = voiceBandCount ? (voiceBandSum / voiceBandCount) : 0;
+  const upperBandAverage = upperBandCount ? (upperBandSum / upperBandCount) : 0;
+
+  if (forceCalibrationUntil) {
+    forceCalibrationSamples.push(rms);
+    if (Date.now() >= forceCalibrationUntil) {
+      finishForcedCalibration();
+    }
+  } else if (forceNoiseProbeUntil) {
+    forceNoiseProbeSamples.push(Math.max(rms * 4.2, spectralAverage * 1.55, spectralPeak * 0.72));
+    if (Date.now() >= forceNoiseProbeUntil) {
+      finishNoiseProbe();
+    }
+  } else if (!audioCalibrationReady) {
+    if (!audioCalibrationStart) {
+      audioCalibrationStart = Date.now();
+    }
+    audioBaseline = (audioBaseline * 0.92) + (rms * 0.08);
+    if ((Date.now() - audioCalibrationStart) >= 2200) {
+      audioCalibrationReady = true;
+      modelStatusEl.textContent = "Live";
+    }
+  } else {
+    audioBaseline = (audioBaseline * 0.987) + (Math.min(rms, audioBaseline + 0.03) * 0.013);
+  }
+
+  const audioLevel = Math.max(
+    0,
+    (rms - audioBaseline) * 4.2,
+    peak * 0.62 - audioBaseline * 0.95,
+    (spectralAverage * 1.55) - (audioBaseline * 0.55),
+    (spectralPeak * 0.72) - (audioBaseline * 0.35)
+  );
+  latestVoiceLikelihood = voiceBandAverage > 0
+    ? voiceBandAverage / Math.max(0.04, (lowBandAverage * 0.85) + (upperBandAverage * 0.55))
+    : 0;
+  const speechTrigger = getDynamicThreshold(configuredSpeechThreshold);
+  const noiseTrigger = getDynamicThreshold(configuredAmbientThreshold);
+  latestVoiceBandLevel = voiceBandAverage;
+  const strongSpeechLevel = audioLevel >= Math.max(speechTrigger * 0.68, noiseTrigger + 0.002);
+  const strongVoiceBand = latestVoiceBandLevel >= Math.max(audioBaseline * 0.85, 0.008);
+  const strongVoiceMatch = latestVoiceLikelihood >= Math.max(configuredVoiceMatchThreshold * 0.38, 0.42);
+  const strongMouthMovement = latestMouthActivity >= 0.008 || latestMouthRatio >= 0.012;
+  const speechSignaturePresent = strongMouthMovement && (strongVoiceBand || strongVoiceMatch || audioLevel >= speechTrigger * 0.92);
+
+  if (activeRangeCapture) {
+    activeRangeCapture.samples.push(audioLevel);
+    if (Date.now() >= activeRangeCapture.until) {
+      completeRangeCapture();
+    }
+  }
+
+  if (forceCalibrationUntil || !audioCalibrationReady) {
+    speechDetectedSince = null;
+    latestAudioState = "Calibrating";
+  } else if (forceNoiseProbeUntil) {
+    speechDetectedSince = null;
+    latestAudioState = "Measuring";
+  } else if (strongSpeechLevel && speechSignaturePresent) {
+    speechDetectedSince = speechDetectedSince || Date.now();
+    latestAudioState = (Date.now() - speechDetectedSince) >= 120 ? "Speech Detected" : "Ambient Sound";
+  } else if (audioLevel >= noiseTrigger) {
+    speechDetectedSince = null;
+    latestAudioState = "Ambient Sound";
+  } else {
+    speechDetectedSince = null;
+    latestAudioState = "Quiet";
+  }
+
+  audioStatusEl.textContent = latestAudioState;
+  updateThresholdReadout(audioLevel);
+  drawSpectrum(audioLevel, latestAudioState, waveform);
+  audioFrame = window.requestAnimationFrame(updateAudioLoop);
+}
+
+function runDetection() {
+  if (!landmarker || videoEl.readyState < 2) {
+    clearOverlay();
+    detectionFrame = window.requestAnimationFrame(runDetection);
+    return;
+  }
+
+  const result = landmarker.detectForVideo(videoEl, performance.now());
+  const faceCount = result.faceLandmarks ? result.faceLandmarks.length : 0;
+  drawFaceOverlay(result.faceLandmarks || []);
+  faceStatusEl.textContent = faceCount === 0 ? "No face" : faceCount === 1 ? "One face" : `${faceCount} faces`;
+
+  if (faceCount === 1) {
+    const landmarks = result.faceLandmarks[0];
+    latestGazeOnScreen = isGazeOnScreen(landmarks);
+    updateMouthActivity(landmarks);
+  } else {
+    latestGazeOnScreen = false;
+    latestMouthRatio = 0;
+    latestMouthActivity = 0;
+  }
+
+  const stableGazeOnScreen = getStableGazeState(Date.now(), faceCount);
+  gazeStatusEl.textContent = faceCount === 1 ? (stableGazeOnScreen ? "On-screen" : "Away") : "Waiting";
+
+  detectionFrame = window.requestAnimationFrame(runDetection);
+}
+
+async function startTest() {
+  startButton.disabled = true;
+  modelStatusEl.textContent = "Loading";
+  setMessage("Requesting camera and microphone access...");
+
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "user", width: { ideal: 960 }, height: { ideal: 720 } },
+      audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+    });
+
+    videoEl.srcObject = stream;
+    await videoEl.play();
+
+    cameraStatusEl.textContent = "Live";
+    micStatusEl.textContent = "Ready";
+    modelStatusEl.textContent = "Live";
+    stopButton.disabled = false;
+    calibrateQuietButton.disabled = false;
+    recheckAudioButton.disabled = false;
+    captureQuietRangeButton.disabled = false;
+    captureAmbientRangeButton.disabled = false;
+    captureSpeechRangeButton.disabled = false;
+
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const audioSource = audioContext.createMediaStreamSource(stream);
+    audioAnalyser = audioContext.createAnalyser();
+    audioAnalyser.fftSize = 512;
+    audioAnalyser.smoothingTimeConstant = 0.22;
+    audioDataArray = new Uint8Array(audioAnalyser.fftSize);
+    frequencyDataArray = new Uint8Array(audioAnalyser.frequencyBinCount);
+    audioSource.connect(audioAnalyser);
+
+    audioBaseline = Number(idleBaselineInput.value);
+    audioCalibrationStart = null;
+    audioCalibrationReady = true;
+    forceCalibrationUntil = null;
+    forceCalibrationSamples = [];
+    latestGazeOnScreen = false;
+    displayedGazeOnScreen = false;
+    pendingGazeOnScreen = false;
+    pendingGazeSince = 0;
+    speechDetectedSince = null;
+    updateThresholdReadout(0);
+    drawSpectrum(0.02, "Mic Ready", []);
+    audioFrame = window.requestAnimationFrame(updateAudioLoop);
+
+    const filesetResolver = await FilesetResolver.forVisionTasks(
+      "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm"
+    );
+    landmarker = await FaceLandmarker.createFromOptions(filesetResolver, {
+      baseOptions: {
+        modelAssetPath: "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task"
+      },
+      runningMode: "VIDEO",
+      numFaces: 2,
+      outputFaceBlendshapes: false,
+      outputFacialTransformationMatrixes: false,
+      minFaceDetectionConfidence: 0.5,
+      minFacePresenceConfidence: 0.5,
+      minTrackingConfidence: 0.5
+    });
+
+    setMessage("Testing is live using the last saved proctoring settings. Use <strong>Calibrate Quiet Room</strong> only when you want to replace the saved baseline, or <strong>Test Current Noise</strong> to check the current room.");
+    detectionFrame = window.requestAnimationFrame(runDetection);
+  } catch (error) {
+    console.error(error);
+    modelStatusEl.textContent = "Blocked";
+    setMessage("Camera and microphone access are required for the ML test. Please allow both permissions and try again.");
+    startButton.disabled = false;
+  }
+}
+
+function stopTest() {
+  if (detectionFrame) {
+    window.cancelAnimationFrame(detectionFrame);
+    detectionFrame = null;
+  }
+  if (audioFrame) {
+    window.cancelAnimationFrame(audioFrame);
+    audioFrame = null;
+  }
+  if (stream) {
+    stream.getTracks().forEach(function(track) { track.stop(); });
+    stream = null;
+  }
+  if (audioContext && typeof audioContext.close === "function") {
+    audioContext.close().catch(function() {});
+  }
+  audioContext = null;
+  audioAnalyser = null;
+  audioDataArray = null;
+  frequencyDataArray = null;
+  landmarker = null;
+  clearOverlay();
+  latestAudioState = "Quiet";
+  latestVoiceLikelihood = 0;
+  latestVoiceBandLevel = 0;
+  latestMouthActivity = 0;
+  latestMouthRatio = 0;
+  latestGazeOnScreen = false;
+  displayedGazeOnScreen = false;
+  pendingGazeOnScreen = false;
+  pendingGazeSince = 0;
+  speechDetectedSince = null;
+  forceCalibrationUntil = null;
+  forceCalibrationSamples = [];
+  forceNoiseProbeUntil = null;
+  forceNoiseProbeSamples = [];
+  cameraStatusEl.textContent = "Stopped";
+  micStatusEl.textContent = "Stopped";
+  faceStatusEl.textContent = "Waiting";
+  gazeStatusEl.textContent = "Waiting";
+  audioStatusEl.textContent = "Quiet";
+  modelStatusEl.textContent = "Idle";
+  setMessage("Test stopped. You can start it again at any time from this admin page.");
+  updateThresholdReadout(0);
+  drawSpectrum(0.02, "Idle", []);
+  stopButton.disabled = true;
+  calibrateQuietButton.disabled = true;
+  recheckAudioButton.disabled = true;
+  captureQuietRangeButton.disabled = true;
+  captureAmbientRangeButton.disabled = true;
+  captureSpeechRangeButton.disabled = true;
+  applyRangeThresholdsButton.disabled = true;
+  startButton.disabled = false;
+}
+
+captureQuietRangeButton.addEventListener("click", function() {
+  beginRangeCapture("quiet", "Quiet range");
+});
+captureAmbientRangeButton.addEventListener("click", function() {
+  beginRangeCapture("ambient", "Ambient range");
+});
+captureSpeechRangeButton.addEventListener("click", function() {
+  beginRangeCapture("speech", "Speech range");
+});
+applyRangeThresholdsButton.addEventListener("click", function() {
+  applySuggestedThresholds();
+  settingsForm.submit();
+});
+
+startButton.addEventListener("click", startTest);
+stopButton.addEventListener("click", stopTest);
+calibrateQuietButton.addEventListener("click", function() {
+  beginForcedCalibration("Calibrating for normal room noise. Stay quiet for a moment so the system can learn the room baseline.");
+});
+recheckAudioButton.addEventListener("click", function() {
+  beginNoiseProbe();
+});
+updateThresholdReadout(0);
+drawSpectrum(0.02, "Idle", []);
+refreshRangeReadouts();
+window.addEventListener("resize", resizeOverlayToVideo);
+</script>
+{% endblock %}

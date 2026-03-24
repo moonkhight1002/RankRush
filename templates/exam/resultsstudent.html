@@ -1,0 +1,114 @@
+{% extends "base_faculty.html" %}
+
+{% block body %}
+<section class="glass-card exam-form-card">
+    <div class="page-heading">
+        <p class="eyebrow">Summary</p>
+        <h1 class="page-title">Results</h1>
+        <p class="page-copy">Review the scores students obtained across the exams published from your faculty account.</p>
+    </div>
+
+    {% if attempts %}
+        <div class="faculty-table-wrap">
+            <table class="faculty-table">
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Exam</th>
+                        <th>Question Paper</th>
+                        <th>Score</th>
+                        <th>Risk</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for attempt in attempts %}
+                        <tr>
+                            <td>{% firstof attempt.student.get_full_name attempt.student.username %}</td>
+                            <td>{{ attempt.examname }}</td>
+                            <td>{{ attempt.qpaper.qPaperTitle }}</td>
+                            <td>{{ attempt.score }}</td>
+                            <td><span class="risk-badge risk-{{ attempt.risk_level|lower }}">{{ attempt.risk_level }}</span></td>
+                            <td>
+                                <div class="faculty-table-actions">
+                                    <a href="{% url 'faculty-attempt-detail' attempt.id %}" class="table-link-btn">View Details</a>
+                                    <form method="POST" action="{% url 'faculty-reset-attempt' attempt.id %}" class="faculty-table-action" id="reset-attempt-form-{{ attempt.id }}">
+                                        {% csrf_token %}
+                                        <button
+                                            type="button"
+                                            class="delete-btn js-open-reset-modal"
+                                            data-form-id="reset-attempt-form-{{ attempt.id }}"
+                                            data-student="{% firstof attempt.student.get_full_name attempt.student.username %}"
+                                            data-exam="{{ attempt.examname }}"
+                                        >
+                                            Reset Attempt
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="faculty-empty-state">
+            No completed student results are available yet.
+        </div>
+    {% endif %}
+</section>
+
+<div id="resetAttemptModal" class="profile-modal reset-attempt-modal">
+    <div class="modal-backdrop js-close-reset-modal"></div>
+    <div class="profile-modal-card reset-attempt-card">
+        <button type="button" class="modal-close js-close-reset-modal" aria-label="Close">&times;</button>
+        <p class="eyebrow">Confirm Action</p>
+        <h2 class="page-title modal-title">Reset Attempt?</h2>
+        <p class="page-copy" id="resetAttemptMessage">Are you sure you want to reset this attempt?</p>
+        <div class="reset-attempt-actions">
+            <button type="button" class="delete-btn js-confirm-reset">Yes, Reset</button>
+            <button type="button" class="main-btn js-close-reset-modal">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('resetAttemptModal');
+    const message = document.getElementById('resetAttemptMessage');
+    const openButtons = document.querySelectorAll('.js-open-reset-modal');
+    const closeButtons = document.querySelectorAll('.js-close-reset-modal');
+    const confirmButton = document.querySelector('.js-confirm-reset');
+    let activeForm = null;
+
+    function closeModal() {
+        modal.classList.remove('is-visible');
+        activeForm = null;
+    }
+
+    openButtons.forEach(function(button) {
+        button.addEventListener('click', function() {
+            activeForm = document.getElementById(button.dataset.formId);
+            message.textContent = 'Are you sure you want to reset ' + button.dataset.student + '\'s "' + button.dataset.exam + '" attempt back to pending?';
+            modal.classList.add('is-visible');
+        });
+    });
+
+    closeButtons.forEach(function(button) {
+        button.addEventListener('click', closeModal);
+    });
+
+    confirmButton.addEventListener('click', function() {
+        if (activeForm) {
+            activeForm.submit();
+        }
+    });
+
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape' && modal.classList.contains('is-visible')) {
+            closeModal();
+        }
+    });
+});
+</script>
+{% endblock %}

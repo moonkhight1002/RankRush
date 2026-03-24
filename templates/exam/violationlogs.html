@@ -1,0 +1,85 @@
+{% extends "base_faculty.html" %}
+
+{% block body %}
+<section class="glass-card exam-form-card">
+    <div class="page-heading">
+        <p class="eyebrow">Summary</p>
+        <h1 class="page-title">Violation Logs</h1>
+        <p class="page-copy">Review anti-cheat alerts captured during student exam sessions under your faculty account.</p>
+    </div>
+
+    <div class="faculty-monitor-grid faculty-monitor-grid-tight">
+        <article class="faculty-monitor-card">
+            <span>Total Logs</span>
+            <strong>{{ summary.total_logs }}</strong>
+        </article>
+        <article class="faculty-monitor-card">
+            <span>Warnings</span>
+            <strong>{{ summary.warning_logs }}</strong>
+        </article>
+        <article class="faculty-monitor-card">
+            <span>Fast Submit</span>
+            <strong>{{ summary.fast_submit_logs }}</strong>
+        </article>
+        <article class="faculty-monitor-card">
+            <span>Students Flagged</span>
+            <strong>{{ summary.students_flagged }}</strong>
+        </article>
+        <article class="faculty-monitor-card">
+            <span>Webcam</span>
+            <strong>{{ summary.webcam_logs }}</strong>
+        </article>
+        <article class="faculty-monitor-card">
+            <span>Audio</span>
+            <strong>{{ summary.audio_logs }}</strong>
+        </article>
+        <article class="faculty-monitor-card">
+            <span>General</span>
+            <strong>{{ summary.general_logs }}</strong>
+        </article>
+    </div>
+
+    {% if logs %}
+        <div class="faculty-table-wrap">
+            <table class="faculty-table">
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Exam</th>
+                        <th>Question Paper</th>
+                        <th>Type</th>
+                        <th>Count</th>
+                        <th>Detail</th>
+                        <th>Logged At</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs %}
+                        <tr>
+                            <td>{% firstof log.student.get_full_name log.student.username %}</td>
+                            <td>{{ log.exam_name }}</td>
+                            <td>{% if log.qpaper %}{{ log.qpaper.qPaperTitle }}{% else %}-{% endif %}</td>
+                            <td>
+                                {% if log.violation_type in webcam_types %}
+                                    Webcam: {{ log.violation_type|title }}
+                                {% elif log.violation_type in audio_types %}
+                                    Audio: {{ log.violation_type|title }}
+                                {% else %}
+                                    {{ log.violation_type|title }}
+                                {% endif %}
+                            </td>
+                            <td>{{ log.violation_count }}</td>
+                            <td>{{ log.detail|default:"-" }}</td>
+                            <td>{{ log.created_at }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="faculty-empty-state">
+            No violation logs have been recorded yet.
+        </div>
+    {% endif %}
+</section>
+{% endblock %}

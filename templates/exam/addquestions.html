@@ -1,0 +1,190 @@
+{% extends "base_faculty.html" %}
+{% load static %}
+
+{% block body %}
+
+<div class="glass-card question-card">
+
+<h1 class="page-title">Add New Question</h1>
+
+<form method="POST" enctype="multipart/form-data" class="modern-form">
+
+{% csrf_token %}
+
+<div class="form-group">
+<label>Question</label>
+{{ examform.question }}
+{% if examform.question.errors %}
+<div class="field-error">{{ examform.question.errors }}</div>
+{% endif %}
+</div>
+
+<div class="form-group upload-field">
+<label>Question Image</label>
+<label class="custom-file-trigger" for="{{ examform.question_image.id_for_label }}">
+    <span>Select Image</span>
+</label>
+{{ examform.question_image }}
+<span class="custom-file-name" data-file-name-for="{{ examform.question_image.id_for_label }}">No file selected</span>
+<p class="field-hint">Optional. Upload an image instead of typing the question, or use both.</p>
+{% if examform.question_image.errors %}
+<div class="field-error">{{ examform.question_image.errors }}</div>
+{% endif %}
+</div>
+
+<div class="options-grid">
+
+<div class="form-group">
+<label>Option A</label>
+{{ examform.optionA }}
+{% if examform.optionA.errors %}
+<div class="field-error">{{ examform.optionA.errors }}</div>
+{% endif %}
+</div>
+
+<div class="form-group upload-field">
+<label>Option A Image</label>
+<label class="custom-file-trigger" for="{{ examform.optionA_image.id_for_label }}">
+    <span>Select Image</span>
+</label>
+{{ examform.optionA_image }}
+<span class="custom-file-name" data-file-name-for="{{ examform.optionA_image.id_for_label }}">No file selected</span>
+{% if examform.optionA_image.errors %}
+<div class="field-error">{{ examform.optionA_image.errors }}</div>
+{% endif %}
+</div>
+
+<div class="form-group">
+<label>Option B</label>
+{{ examform.optionB }}
+{% if examform.optionB.errors %}
+<div class="field-error">{{ examform.optionB.errors }}</div>
+{% endif %}
+</div>
+
+<div class="form-group upload-field">
+<label>Option B Image</label>
+<label class="custom-file-trigger" for="{{ examform.optionB_image.id_for_label }}">
+    <span>Select Image</span>
+</label>
+{{ examform.optionB_image }}
+<span class="custom-file-name" data-file-name-for="{{ examform.optionB_image.id_for_label }}">No file selected</span>
+{% if examform.optionB_image.errors %}
+<div class="field-error">{{ examform.optionB_image.errors }}</div>
+{% endif %}
+</div>
+
+<div class="form-group">
+<label>Option C</label>
+{{ examform.optionC }}
+{% if examform.optionC.errors %}
+<div class="field-error">{{ examform.optionC.errors }}</div>
+{% endif %}
+</div>
+
+<div class="form-group upload-field">
+<label>Option C Image</label>
+<label class="custom-file-trigger" for="{{ examform.optionC_image.id_for_label }}">
+    <span>Select Image</span>
+</label>
+{{ examform.optionC_image }}
+<span class="custom-file-name" data-file-name-for="{{ examform.optionC_image.id_for_label }}">No file selected</span>
+{% if examform.optionC_image.errors %}
+<div class="field-error">{{ examform.optionC_image.errors }}</div>
+{% endif %}
+</div>
+
+<div class="form-group">
+<label>Option D</label>
+{{ examform.optionD }}
+{% if examform.optionD.errors %}
+<div class="field-error">{{ examform.optionD.errors }}</div>
+{% endif %}
+</div>
+
+<div class="form-group upload-field">
+<label>Option D Image</label>
+<label class="custom-file-trigger" for="{{ examform.optionD_image.id_for_label }}">
+    <span>Select Image</span>
+</label>
+{{ examform.optionD_image }}
+<span class="custom-file-name" data-file-name-for="{{ examform.optionD_image.id_for_label }}">No file selected</span>
+{% if examform.optionD_image.errors %}
+<div class="field-error">{{ examform.optionD_image.errors }}</div>
+{% endif %}
+</div>
+
+</div>
+
+<div class="form-group">
+<label>Correct Answer</label>
+{{ examform.answer }}
+<p class="field-hint">Use A, B, C, or D. You can also type the exact option text when the option is text-based.</p>
+{% if examform.answer.errors %}
+<div class="field-error">{{ examform.answer.errors }}</div>
+{% endif %}
+</div>
+
+<div class="form-group">
+<label>Maximum Marks</label>
+{{ examform.max_marks }}
+{% if examform.max_marks.errors %}
+<div class="field-error">{{ examform.max_marks.errors }}</div>
+{% endif %}
+</div>
+
+<button type="submit" class="main-btn">
+Submit Question
+</button>
+
+</form>
+
+<div class="saved-paper-list">
+    <h2 class="saved-paper-title">Saved Questions</h2>
+    {% if saved_questions %}
+        <div class="saved-paper-grid">
+            {% for question in saved_questions %}
+                <div class="saved-paper-item">
+                    <strong>{{ question.question|default:"Image-based question" }}</strong>
+                    {% if question.question_image %}
+                        <img src="{{ question.question_image.url }}" alt="Question preview" class="saved-question-preview">
+                    {% endif %}
+                    <span>Answer: {{ question.answer }} | Marks: {{ question.max_marks }}</span>
+                    <form method="POST" action="{% url 'faculty-delete-question' question.qno %}" class="saved-item-action">
+                        {% csrf_token %}
+                        <button type="submit" class="delete-btn" onclick="return confirm('Delete this question?');">
+                            Delete
+                        </button>
+                    </form>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="faculty-empty-state">
+            No questions have been saved yet.
+        </div>
+    {% endif %}
+</div>
+
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.upload-field input[type="file"]').forEach(function(input) {
+        var fileName = document.querySelector('[data-file-name-for="' + input.id + '"]');
+        if (!fileName) {
+            return;
+        }
+
+        input.addEventListener('change', function() {
+            if (input.files && input.files.length) {
+                fileName.textContent = input.files[0].name;
+            } else {
+                fileName.textContent = 'No file selected';
+            }
+        });
+    });
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,86 @@
+{% extends "base_faculty.html" %}
+
+{% block body %}
+<div class="glass-card question-paper-card">
+    <div class="page-heading">
+        <p class="eyebrow">Question Paper Setup</p>
+        <h1 class="page-title">Add Question Paper</h1>
+        <p class="page-copy">Create a paper title and select from the questions you already added. This page does not use a free-text question box.</p>
+    </div>
+
+    <form method="POST" action="{% url 'faculty-add_question_paper' %}" class="question-paper-form">
+        {% csrf_token %}
+
+        {% if examform.non_field_errors %}
+            <div class="form-alert">
+                {{ examform.non_field_errors }}
+            </div>
+        {% endif %}
+
+        <div class="form-group">
+            <label for="{{ examform.qPaperTitle.id_for_label }}">Question Paper Title</label>
+            <input
+                type="text"
+                name="qPaperTitle"
+                id="id_qPaperTitle"
+                value="{{ examform.qPaperTitle.value|default_if_none:'' }}"
+                placeholder="Enter question paper title"
+                autocomplete="off"
+            >
+            {% if examform.qPaperTitle.errors %}
+                <div class="field-error">{{ examform.qPaperTitle.errors }}</div>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label for="{{ examform.questions.id_for_label }}">Questions</label>
+            <p class="field-help">Hold Ctrl on Windows or Cmd on Mac to select multiple questions. If the list is empty, add questions first from the New Questions page.</p>
+            {% if examform.fields.questions.queryset %}
+                {{ examform.questions }}
+            {% else %}
+                <div class="empty-select-state">
+                    <strong>No questions available.</strong>
+                    <span>Create questions first, then come back here to build the paper.</span>
+                    <a href="{% url 'faculty-addquestions' %}" class="empty-state-link">Go to Create Questions</a>
+                </div>
+            {% endif %}
+            {% if examform.questions.errors %}
+                <div class="field-error">{{ examform.questions.errors }}</div>
+            {% endif %}
+        </div>
+
+        <div class="submit-area">
+            <button type="submit" class="main-btn">Save Question Paper</button>
+        </div>
+    </form>
+
+    <div class="saved-paper-list">
+        <h2 class="saved-paper-title">Saved Question Papers</h2>
+        {% if question_papers %}
+            <div class="saved-paper-grid">
+                {% for paper in question_papers %}
+                    <div class="saved-paper-item">
+                        <div class="saved-paper-head">
+                            <strong>{{ paper.qPaperTitle }}</strong>
+                            {% if paper.exams.exists %}
+                                <span class="saved-paper-badge">In Use</span>
+                            {% endif %}
+                        </div>
+                        <span>{{ paper.questions.count }} question{{ paper.questions.count|pluralize }}</span>
+                        <form method="POST" action="{% url 'faculty-delete-question-paper' paper.id %}" class="saved-item-action">
+                            {% csrf_token %}
+                            <button type="submit" class="delete-btn" onclick="return confirm('Delete this question paper?');">
+                                Delete Paper
+                            </button>
+                        </form>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="faculty-empty-state">
+                No question papers have been saved yet.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

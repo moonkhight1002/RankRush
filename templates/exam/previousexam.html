@@ -1,0 +1,38 @@
+{% extends "base_faculty.html" %}
+
+{% block body %}
+<section class="glass-card exam-form-card">
+    <div class="page-heading">
+        <p class="eyebrow">Summary</p>
+        <h1 class="page-title">Previous Exams</h1>
+        <p class="page-copy">Review the exams you have already created and scheduled from your faculty workspace.</p>
+    </div>
+
+    {% if exams %}
+        <div class="faculty-table-wrap">
+            <table class="faculty-table">
+                <thead>
+                    <tr>
+                        <th>Exam Name</th>
+                        <th>Professor</th>
+                        <th>Total Marks</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for exam in exams %}
+                        <tr>
+                            <td>{{ exam.name }}</td>
+                            <td>{{ exam.professor }}</td>
+                            <td>{{ exam.total_marks }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="faculty-empty-state">
+            No exams have been created yet.
+        </div>
+    {% endif %}
+</section>
+{% endblock %}

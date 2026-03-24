@@ -1,0 +1,47 @@
+{% extends "base_faculty.html" %}
+{% load static %}
+
+{% block body %}
+<section class="glass-card question-paper-card">
+    <div class="page-heading">
+        <p class="eyebrow">Profile</p>
+        <h1 class="page-title">Change Profile Picture</h1>
+        <p class="page-copy">Upload a cleaner profile photo that matches your faculty account identity.</p>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="question-paper-form">
+        {% csrf_token %}
+
+        <div class="form-group profile-upload-group">
+            <label for="fileInput">Upload New Picture</label>
+            <input type="file" id="fileInput" name="picture" accept="image/*" class="styled-file-input">
+            <label for="fileInput" class="profile-preview profile-preview-trigger">
+                <img
+                    src="{% if request.user.facultyinfo.picture %}{{ request.user.facultyinfo.picture.url }}{% else %}{% static 'img/default-avatar.jpg' %}{% endif %}"
+                    id="previewAvatar"
+                    class="profile-preview-pic"
+                    alt="Profile picture"
+                >
+                <span class="profile-preview-text">Click to select image.</span>
+            </label>
+        </div>
+
+        <div class="submit-area">
+            <button type="submit" class="main-btn">Save Changes</button>
+        </div>
+    </form>
+</section>
+
+<script>
+document.getElementById("fileInput").addEventListener("change", function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function() {
+            document.getElementById("previewAvatar").src = reader.result;
+        };
+        reader.readAsDataURL(file);
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block body %}
+<section class="student-card">
+    <div class="student-page-heading">
+        <p class="student-eyebrow">Exams</p>
+        <h1 class="student-page-title">View Exams</h1>
+        <p class="student-page-copy">These are the exams currently available for you to appear.</p>
+    </div>
+
+    {% if exams %}
+        <div class="student-grid">
+            {% for exam in exams %}
+                <article class="student-exam-card">
+                    <div class="student-exam-media"></div>
+                    <div class="student-exam-body">
+                        <h3>{{ exam.name }}</h3>
+                        <div class="student-meta-list">
+                            <span>Professor {{ exam.professor }}</span>
+                            <span>Question Paper - {{ exam.question_paper.qPaperTitle }}</span>
+                        </div>
+                        <a href="{% url 'appear-exam' exam.id %}" class="student-main-btn">Appear Exam</a>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="student-empty-state">
+            No pending exams are available right now.
+        </div>
+    {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block body %}
+<section class="student-card">
+    <div class="student-page-heading">
+        <p class="student-eyebrow">Settings</p>
+        <h1 class="student-page-title">General Settings</h1>
+        <p class="student-page-copy">Manage notification preferences and quick access to account security options.</p>
+    </div>
+
+    <div class="student-form-stack">
+        <form method="post" action="{% url 'email-student-pref' %}" class="student-form-stack">
+            {% csrf_token %}
+            <div class="student-form-group">
+                <label for="inputGroupSelect04">Login Email Notifications</label>
+                <select name="email_pref" id="inputGroupSelect04">
+                    {% if student_preference %}
+                        <option selected value="{{ student_preference.sendEmailOnLogin }}">{{ email_pref_value }}</option>
+                        <option value="False">Off</option>
+                        <option value="True">On</option>
+                    {% else %}
+                        <option selected value="True">On</option>
+                        <option value="False">Off</option>
+                    {% endif %}
+                </select>
+            </div>
+
+            <div class="student-submit-area">
+                <button type="submit" class="student-main-btn">Save Preference</button>
+            </div>
+        </form>
+
+        <div class="student-settings-links">
+            <div class="student-settings-panel">
+                <h3>Change Password</h3>
+                <p>Update your password regularly to keep your student account secure.</p>
+                <a href="{% url 'change_password' %}" class="student-main-btn">Open Password Settings</a>
+            </div>
+
+            <div class="student-settings-panel">
+                <h3>Profile Options</h3>
+                <p>Use the profile dropdown in the header to preview change-DP and change-email actions.</p>
+                <a href="#student-change-dp-modal" class="student-main-btn">Open Profile Options</a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

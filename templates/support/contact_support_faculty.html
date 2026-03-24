@@ -1,0 +1,52 @@
+{% extends "base_faculty.html" %}
+
+{% block body %}
+<section class="glass-card faculty-home-card exam-form-card">
+    <div class="page-heading">
+        <p class="eyebrow">Support</p>
+        <h1 class="page-title">Contact Support</h1>
+        <p class="page-copy">Share feedback, report a problem, or ask for help. Your message will be visible only to the admin team.</p>
+    </div>
+
+    <form method="post" action="{% url 'contact_support' %}" class="support-form-shell">
+        {% csrf_token %}
+        <div class="support-info-layout support-info-grid">
+            <div class="faculty-monitor-card support-info-card">
+                <h3>Registered Email</h3>
+                <p>This message will be linked to your account email so the admin can contact you back.</p>
+                <div class="form-group support-readonly-group">
+                    <label for="facultySupportRegisteredEmail">Email Address</label>
+                    <input type="email" id="facultySupportRegisteredEmail" value="{{ registered_email }}" readonly>
+                </div>
+            </div>
+            <div class="faculty-monitor-card support-info-card">
+                <h3>Need Help Fast?</h3>
+                <p>Add the exam name, affected page, and issue timing so the admin can understand the problem without follow-up delays.</p>
+            </div>
+        </div>
+
+        <div class="form-group support-form-group">
+            <label for="facultySupportTicketType">Request Type</label>
+            <select name="ticket_type" id="facultySupportTicketType" required>
+                {% for value, label in support_types %}
+                    <option value="{{ value }}">{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group support-form-group">
+            <label for="facultySupportSubject">Subject</label>
+            <input type="text" name="subject" id="facultySupportSubject" maxlength="120" placeholder="Example: Violation log visibility issue" required>
+        </div>
+
+        <div class="form-group support-form-group">
+            <label for="facultySupportMessage">Message</label>
+            <textarea name="message" id="facultySupportMessage" rows="7" placeholder="Describe your issue, feedback, or request in detail." required></textarea>
+        </div>
+
+        <div class="submit-area support-submit-area">
+            <button type="submit" class="main-btn">Send To Admin Support</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

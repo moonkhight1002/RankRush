@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block body %}
+<section class="student-card">
+    <div class="student-page-heading">
+        <p class="student-eyebrow">Result</p>
+        <h1 class="student-page-title">Exam Result</h1>
+        <p class="student-page-copy">Review your performance summary for the completed exam.</p>
+    </div>
+
+    <div class="student-table-wrap">
+        <table class="student-table">
+            <thead>
+                <tr>
+                    <th>Exam Professor</th>
+                    <th>Exam Name</th>
+                    <th>Exam Title</th>
+                    <th>Marks Obtained</th>
+                    <th>Total Marks</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{ exam.professor }}</td>
+                    <td>{{ exam.name }}</td>
+                    <td>{{ exam.question_paper.qPaperTitle }}</td>
+                    <td>{{ score }}</td>
+                    <td>{{ exam.total_marks }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

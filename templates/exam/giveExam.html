@@ -1,0 +1,1590 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RankRush</title>
+    <script>
+        (function() {
+            const storageKey = 'rankrush-theme-student-{{ request.user.username|escapejs }}';
+            const preferredTheme = localStorage.getItem(storageKey) || 'dark';
+            const isLight = preferredTheme === 'light' || (
+                preferredTheme === 'system' &&
+                window.matchMedia &&
+                window.matchMedia('(prefers-color-scheme: light)').matches
+            );
+            document.documentElement.classList.add(isLight ? 'theme-light' : 'theme-dark');
+        })();
+    </script>
+    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/main.css' %}" rel="stylesheet">
+    <link href="{% static 'css/dashboard.css' %}" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js" crossorigin="anonymous"></script>
+</head>
+<body class="exam-live-page">
+    <div class="student-shell">
+        <main class="student-page-content student-exam-page-content">
+            <section class="student-card exam-session-card">
+                <div id="examFullscreenGate" class="exam-fullscreen-gate">
+                    <div class="exam-fullscreen-panel">
+                        <p class="student-eyebrow">Exam Access</p>
+                        <h2 class="student-page-title exam-gate-title">Fullscreen Required</h2>
+                        <p class="student-page-copy">Allow webcam and microphone access, stay centered, and enter fullscreen to begin. Make sure you are in a well-lit and silent environment. The exam will unlock only after exactly one face is detected, your gaze is on-screen, and the microphone is ready.</p>
+                        <div class="exam-gate-checklist">
+                            <span class="exam-gate-check" id="gateCameraStatus">Camera: Waiting</span>
+                            <span class="exam-gate-check" id="gateMicStatus">Mic: Waiting</span>
+                            <span class="exam-gate-check" id="gateFaceStatus">Face Check: Waiting</span>
+                            <span class="exam-gate-check" id="gateGazeStatus">Gaze Check: Waiting</span>
+                        </div>
+                        <p class="student-page-copy exam-proctor-copy" id="proctorGateMessage">Click below to allow the webcam and microphone, then stay in a well-lit and silent environment while the pre-check starts.</p>
+                        <button type="button" class="student-main-btn exam-gate-btn" id="startExamButton">Enable Camera, Mic, And Start</button>
+                    </div>
+                </div>
+
+                <div class="student-page-heading">
+                    <p class="student-eyebrow">Live Exam</p>
+                    <h1 class="student-page-title">{{ exam.name }}</h1>
+                    <p class="student-page-copy">Stay focused in this window. Leaving the exam screen, exiting fullscreen, or attempting restricted actions will trigger warnings.</p>
+                </div>
+
+                <div class="exam-alert-bar">
+                    <div class="exam-alert-status">
+                        <span class="exam-alert-label">Warnings</span>
+                        <strong id="warningCount">0 / 5</strong>
+                    </div>
+                    <div class="exam-alert-status">
+                        <span class="exam-alert-label">Time Left</span>
+                        <strong><span id="dmin">{{ mins }}</span>m <span id="dsec">{{ secs }}</span>s</strong>
+                    </div>
+                    <div class="exam-alert-status">
+                        <span class="exam-alert-label">Autosave</span>
+                        <strong id="autosaveStatus">Waiting...</strong>
+                        <span class="exam-status-note" id="autosaveMeta">No answers saved yet</span>
+                    </div>
+                    <div class="exam-alert-status exam-network-status" id="examNetworkBadge" aria-live="polite">
+                        <span class="exam-alert-label">Network</span>
+                        <strong id="examNetworkLabel">Checking...</strong>
+                        <span class="exam-status-note" id="examNetworkMeta">Waiting for connection info</span>
+                    </div>
+                    <button type="button" class="student-main-btn exam-fullscreen-btn" id="fullscreenButton">Enter Fullscreen</button>
+                </div>
+
+                <div id="examWarningBanner" class="exam-warning-banner" hidden></div>
+
+                <div class="exam-live-layout">
+                    <div class="exam-live-main">
+                        <div class="exam-meta-grid">
+                            <div class="student-settings-panel">
+                                <h3>Professor</h3>
+                                <p>{{ exam.professor }}</p>
+                            </div>
+                            <div class="student-settings-panel">
+                                <h3>Paper</h3>
+                                <p>{{ exam.question_paper.qPaperTitle }}</p>
+                            </div>
+                            <div class="student-settings-panel">
+                                <h3>Total Marks</h3>
+                                <p>{{ exam.total_marks }}</p>
+                            </div>
+                        </div>
+
+                        <form method="POST" id="examform" class="student-form-stack exam-question-form exam-locked">
+                            {% csrf_token %}
+
+                            <div class="exam-progress-bar">
+                                <div class="exam-progress-copy">
+                                    <span class="exam-progress-step">Question <strong id="currentQuestionNumber">1</strong> of <strong id="totalQuestionCount">{{ question_cards|length }}</strong></span>
+                                    <span class="exam-progress-answered"><strong id="answeredQuestionCount">0</strong> answered</span>
+                                </div>
+                                <div class="exam-progress-track">
+                                    <span class="exam-progress-fill" id="examProgressFill"></span>
+                                </div>
+                                <div class="exam-question-jump" id="examQuestionJump">
+                                    {% for ques in question_cards %}
+                                        <button type="button" class="exam-jump-btn{% if forloop.first %} is-active{% endif %}" data-question-jump="{{ forloop.counter0 }}">{{ forloop.counter }}</button>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            {% for ques in question_cards %}
+                                <div class="exam-question-card{% if not forloop.first %} exam-question-hidden{% endif %}" data-question-index="{{ forloop.counter0 }}">
+                                    <p class="exam-question-title">
+                                        {{ forloop.counter }}.
+                                        {% if ques.question %}
+                                            {{ ques.question }}
+                                        {% else %}
+                                            View the question image below.
+                                        {% endif %}
+                                    </p>
+                                    {% if ques.question_image_url %}
+                                        <div class="exam-question-media">
+                                            <img src="{{ ques.question_image_url }}" alt="Question image">
+                                        </div>
+                                    {% endif %}
+                                    <div class="exam-options-grid">
+                                        {% for option in ques.options %}
+                                            <label class="exam-option">
+                                                <input type="radio" name="question_{{ ques.qno }}" value="{{ option.value }}">
+                                                <span class="exam-option-copy">
+                                                    <strong>{{ option.display_value }}.</strong>
+                                                    {% if option.text %}
+                                                        {{ option.text }}
+                                                    {% else %}
+                                                        Image option
+                                                    {% endif %}
+                                                </span>
+                                                {% if option.image_url %}
+                                                    <img src="{{ option.image_url }}" alt="Option {{ option.display_value }}" class="exam-option-image">
+                                                {% endif %}
+                                            </label>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+
+                            <input type="hidden" value="{{ exam.id }}" name="exam_id">
+                            <input type="hidden" value="{{ exam_session_token }}" name="exam_token" id="examToken">
+                            <input type="hidden" value="{{ exam }}" name="paper">
+                            <input type="hidden" id="secs" value="{{ secs }}">
+                            <input type="hidden" id="mins" value="{{ mins }}">
+                            <input type="hidden" id="professorname" value="{{ exam.professor }}">
+
+                            <div class="exam-action-row">
+                                <div class="exam-navigation">
+                                    <button type="button" class="student-main-btn exam-nav-btn exam-nav-secondary" id="previousQuestionButton">Previous</button>
+                                    <button type="button" class="student-main-btn exam-nav-btn" id="nextQuestionButton">Next</button>
+                                </div>
+
+                                <div class="student-submit-area exam-submit-area">
+                                    <input type="submit" value="Submit Exam" id="PaperSubmit" class="student-main-btn exam-submit-btn">
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <aside class="exam-proctor-panel" id="examProctorPanel">
+                        <div class="exam-proctor-panel-header">
+                            <span>Proctor Camera</span>
+                            <span class="exam-proctor-badge" id="proctorStatusBadge">Waiting</span>
+                        </div>
+                        <div class="exam-audio-visualizer-wrap">
+                            <canvas id="examAudioSpectrum" class="exam-audio-spectrum" width="512" height="84" aria-label="Live microphone spectrum"></canvas>
+                        </div>
+                        <div class="exam-proctor-preview-wrap">
+                            <video id="proctorVideo" class="exam-proctor-video" autoplay playsinline muted></video>
+                        </div>
+                        <div class="exam-proctor-readings">
+                            <span id="cameraStatus">Camera: Not started</span>
+                            <span id="micStatus">Mic: Not started</span>
+                            <span id="audioStatus">Audio Activity: Waiting</span>
+                            <span id="faceStatus">Faces: Waiting</span>
+                            <span id="gazeStatus">Gaze: Waiting</span>
+                        </div>
+                    </aside>
+                </div>
+            </section>
+        </main>
+    </div>
+
+<script type="text/javascript">
+document.body.classList.remove('theme-light', 'theme-dark');
+document.body.classList.add(document.documentElement.classList.contains('theme-light') ? 'theme-light' : 'theme-dark');
+
+let violationCount = 0;
+const maxViolations = 5;
+let submitFormOkay = false;
+let cheatReported = false;
+let monitoringArmed = false;
+let autosaveTimer = null;
+let proctorInitPromise = null;
+let proctorReady = false;
+let proctorStream = null;
+let proctorLandmarker = null;
+let proctorLoopHandle = null;
+let audioContext = null;
+let audioAnalyser = null;
+let audioDataArray = null;
+let audioFrequencyDataArray = null;
+let audioLoopHandle = null;
+let micReady = false;
+let hasExamStarted = false;
+let latestFaceCount = 0;
+let latestGazeOnScreen = false;
+let latestAudioLevel = 0;
+let latestAudioState = "Quiet";
+let latestAudioWaveform = [];
+let audioBaselineLevel = Number("{{ proctoring_settings.idle_baseline|floatformat:3 }}");
+let audioCalibrationStartedAt = null;
+let audioCalibrationReady = true;
+let latestVoiceLikelihood = 0;
+let latestVoiceBandLevel = 0;
+let latestMouthActivity = 0;
+let latestMouthRatio = 0;
+let latestAdaptiveAudioSample = 0;
+let speechDetectedSince = null;
+let stableSingleFaceSince = null;
+let stableGazeSince = null;
+let displayedFaceCount = 0;
+let pendingFaceCount = 0;
+let pendingFaceSince = 0;
+let displayedGazeOnScreen = false;
+let pendingGazeOnScreen = false;
+let pendingGazeSince = 0;
+let displayedAudioState = "Waiting";
+let pendingAudioState = "Waiting";
+let pendingAudioSince = 0;
+  let ambientLearningStartedAt = null;
+let ambientLearningActive = false;
+let ambientLearningComplete = false;
+let ambientLearningSamples = [];
+const ambientLearningDurationMs = 40000;
+let examLockedState = null;
+let lastProctorBadgeText = "";
+let lastProctorBadgeClass = "";
+let lastProctorMessage = "";
+let lastCameraStatusText = "";
+let lastMicStatusText = "";
+let lastAudioStatusText = "";
+let lastFaceStatusText = "";
+let lastGazeStatusText = "";
+let lastGateCameraText = "";
+let lastGateMicText = "";
+let lastGateFaceText = "";
+let lastGateGazeText = "";
+const violationTimers = {
+    no_face: null,
+    multi_face: null,
+    gaze_away: null,
+    audio_activity: null
+};
+const violationCooldowns = {};
+    const proctorThresholds = {
+        precheckMs: Number("{{ proctoring_settings.precheck_ms }}"),
+        noFaceMs: Number("{{ proctoring_settings.no_face_ms }}"),
+        multiFaceMs: Number("{{ proctoring_settings.multi_face_ms }}"),
+        gazeAwayMs: Number("{{ proctoring_settings.gaze_away_ms }}"),
+        audioNoiseMs: 400,
+        speechThreshold: Number("{{ proctoring_settings.speech_threshold|floatformat:3 }}"),
+        ambientThreshold: Number("{{ proctoring_settings.ambient_threshold|floatformat:3 }}"),
+        voiceMatchThreshold: Number("{{ proctoring_settings.voice_match_threshold|floatformat:3 }}"),
+      audioCalibrationMs: 2200,
+      cooldownMs: 8000
+  };
+  const proctorUiThresholds = {
+      faceMs: 420,
+      gazeMs: 650,
+      audioMs: 320
+  };
+
+const warningCountEl = document.getElementById("warningCount");
+const warningBannerEl = document.getElementById("examWarningBanner");
+const examForm = document.getElementById("examform");
+const fullscreenButton = document.getElementById("fullscreenButton");
+const startExamButton = document.getElementById("startExamButton");
+const fullscreenGate = document.getElementById("examFullscreenGate");
+const examToken = document.getElementById("examToken").value;
+const autosaveKey = `rankrush-exam-autosave-{{ exam.id }}-${examToken}`;
+const autosaveStatusEl = document.getElementById("autosaveStatus");
+const autosaveMetaEl = document.getElementById("autosaveMeta");
+const examNetworkBadgeEl = document.getElementById("examNetworkBadge");
+const examNetworkLabelEl = document.getElementById("examNetworkLabel");
+const examNetworkMetaEl = document.getElementById("examNetworkMeta");
+const questionCards = Array.from(document.querySelectorAll(".exam-question-card"));
+const previousQuestionButton = document.getElementById("previousQuestionButton");
+const nextQuestionButton = document.getElementById("nextQuestionButton");
+const currentQuestionNumberEl = document.getElementById("currentQuestionNumber");
+const totalQuestionCountEl = document.getElementById("totalQuestionCount");
+const answeredQuestionCountEl = document.getElementById("answeredQuestionCount");
+const examProgressFill = document.getElementById("examProgressFill");
+const submitButton = document.getElementById("PaperSubmit");
+const jumpButtons = Array.from(document.querySelectorAll("[data-question-jump]"));
+let heartbeatTimer = null;
+let currentQuestionIndex = 0;
+const proctorVideo = document.getElementById("proctorVideo");
+const proctorStatusBadge = document.getElementById("proctorStatusBadge");
+const cameraStatusEl = document.getElementById("cameraStatus");
+const micStatusEl = document.getElementById("micStatus");
+const audioStatusEl = document.getElementById("audioStatus");
+const faceStatusEl = document.getElementById("faceStatus");
+const gazeStatusEl = document.getElementById("gazeStatus");
+const gateCameraStatusEl = document.getElementById("gateCameraStatus");
+const gateMicStatusEl = document.getElementById("gateMicStatus");
+const gateFaceStatusEl = document.getElementById("gateFaceStatus");
+const gateGazeStatusEl = document.getElementById("gateGazeStatus");
+const proctorGateMessageEl = document.getElementById("proctorGateMessage");
+const audioSpectrumCanvas = document.getElementById("examAudioSpectrum");
+const audioSpectrumContext = audioSpectrumCanvas ? audioSpectrumCanvas.getContext("2d") : null;
+
+totalQuestionCountEl.textContent = questionCards.length;
+
+examForm.addEventListener("submit", function() {
+    submitFormOkay = true;
+    window.onbeforeunload = null;
+    clearAutosaveData();
+});
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+function reportCheatingOnce() {
+    if (cheatReported) {
+        return;
+    }
+    cheatReported = true;
+    const professorname = document.getElementById("professorname").value;
+    fetch(`/student/cheat/${professorname}`, {
+        method: "GET",
+        credentials: "same-origin",
+        headers: {
+            "X-CSRFToken": getCookie("csrftoken"),
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+        },
+    });
+}
+
+function showWarning(message) {
+    warningBannerEl.hidden = false;
+    warningBannerEl.textContent = message;
+}
+
+function setAutosaveStatus(message) {
+    autosaveStatusEl.textContent = message;
+}
+
+function setAutosaveMeta(message) {
+    autosaveMetaEl.textContent = message;
+}
+
+function collectAnswers() {
+    const answers = {};
+    examForm.querySelectorAll('input[type="radio"]:checked').forEach(function(input) {
+        answers[input.name] = input.value;
+    });
+    return answers;
+}
+
+function saveAnswers() {
+    if (submitFormOkay) {
+        return;
+    }
+    const payload = {
+        savedAt: new Date().toISOString(),
+        answers: collectAnswers()
+    };
+    sessionStorage.setItem(autosaveKey, JSON.stringify(payload));
+    setAutosaveStatus('Saved');
+    setAutosaveMeta('Saved just now');
+}
+
+function restoreAnswers() {
+    const raw = sessionStorage.getItem(autosaveKey);
+    if (!raw) {
+        setAutosaveStatus('Waiting...');
+        setAutosaveMeta('No answers saved yet');
+        return;
+    }
+    try {
+        const payload = JSON.parse(raw);
+        const answers = payload.answers || {};
+        Object.keys(answers).forEach(function(name) {
+            const input = examForm.querySelector(`input[name="${name}"][value="${answers[name]}"]`);
+            if (input) {
+                input.checked = true;
+            }
+        });
+        setAutosaveStatus('Restored');
+        setAutosaveMeta('Restored from this device');
+    } catch (error) {
+        sessionStorage.removeItem(autosaveKey);
+        setAutosaveStatus('Waiting...');
+        setAutosaveMeta('No answers saved yet');
+    }
+}
+
+function clearAutosaveData() {
+    sessionStorage.removeItem(autosaveKey);
+}
+
+function getExamNetworkAssessment() {
+    const online = navigator.onLine;
+    const assessment = {
+        state: "is-good",
+        label: "Network Stable",
+        meta: "Running live probe...",
+        speedMbps: null,
+        blocksStart: false
+    };
+
+    if (!online) {
+        assessment.state = "is-offline";
+        assessment.label = "Offline";
+        assessment.meta = "Autosave and heartbeat are paused";
+        assessment.blocksStart = true;
+    }
+
+    return assessment;
+}
+
+let examNetworkProbeInFlight = false;
+let examNetworkProbeTimer = null;
+let latestExamNetworkAssessment = getExamNetworkAssessment();
+
+async function runExamNetworkProbe() {
+    if (examNetworkProbeInFlight) {
+        return latestExamNetworkAssessment;
+    }
+
+    if (!navigator.onLine) {
+        latestExamNetworkAssessment = getExamNetworkAssessment();
+        updateExamNetworkStatus();
+        return latestExamNetworkAssessment;
+    }
+
+    examNetworkProbeInFlight = true;
+
+    try {
+        const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+        const timeoutId = controller ? window.setTimeout(function() { controller.abort(); }, 8000) : null;
+        const start = performance.now();
+        const response = await fetch("{% static 'css/bootstrap.min.css' %}?network_probe=" + Date.now(), {
+            cache: "no-store",
+            signal: controller ? controller.signal : undefined
+        });
+        const blob = await response.blob();
+        const elapsedMs = Math.max(performance.now() - start, 1);
+        if (timeoutId) {
+            window.clearTimeout(timeoutId);
+        }
+
+        const megabitsPerSecond = ((blob.size * 8) / (elapsedMs / 1000)) / 1000000;
+        latestExamNetworkAssessment = {
+            state: megabitsPerSecond >= 8 ? "is-good" : megabitsPerSecond >= 3 ? "is-fair" : "is-poor",
+            label: megabitsPerSecond >= 8 ? "Network Stable" : megabitsPerSecond >= 3 ? "Network Fair" : "Weak Network",
+            meta: `${megabitsPerSecond.toFixed(1)} Mbps live`,
+            speedMbps: megabitsPerSecond,
+            blocksStart: false
+        };
+    } catch (error) {
+        latestExamNetworkAssessment = navigator.onLine ? {
+            state: "is-poor",
+            label: "Probe Failed",
+            meta: "Could not measure live speed",
+            speedMbps: null,
+            blocksStart: false
+        } : getExamNetworkAssessment();
+    } finally {
+        examNetworkProbeInFlight = false;
+        updateExamNetworkStatus();
+    }
+
+    return latestExamNetworkAssessment;
+}
+
+function updateExamNetworkStatus() {
+    if (!examNetworkBadgeEl || !examNetworkLabelEl || !examNetworkMetaEl) {
+        return;
+    }
+    const assessment = navigator.onLine ? latestExamNetworkAssessment : getExamNetworkAssessment();
+
+    examNetworkBadgeEl.classList.remove("is-good", "is-fair", "is-poor", "is-offline");
+    examNetworkBadgeEl.classList.add(assessment.state);
+    examNetworkLabelEl.textContent = assessment.label;
+    examNetworkMetaEl.textContent = assessment.meta;
+}
+
+function countAnsweredQuestions() {
+    return new Set(
+        Array.from(examForm.querySelectorAll('input[type="radio"]:checked')).map(function(input) {
+            return input.name;
+        })
+    ).size;
+}
+
+function updateQuestionProgress() {
+    const totalQuestions = questionCards.length || 1;
+    const answeredCount = countAnsweredQuestions();
+    currentQuestionNumberEl.textContent = currentQuestionIndex + 1;
+    answeredQuestionCountEl.textContent = answeredCount;
+    examProgressFill.style.width = `${((currentQuestionIndex + 1) / totalQuestions) * 100}%`;
+    previousQuestionButton.disabled = currentQuestionIndex === 0;
+    nextQuestionButton.hidden = currentQuestionIndex === totalQuestions - 1;
+    submitButton.parentElement.classList.toggle("is-visible", currentQuestionIndex === totalQuestions - 1);
+}
+
+function isCurrentQuestionAnswered() {
+    const currentCard = questionCards[currentQuestionIndex];
+    return Boolean(currentCard && currentCard.querySelector('input[type="radio"]:checked'));
+}
+
+function showQuestion(index) {
+    if (index < 0 || index >= questionCards.length) {
+        return;
+    }
+    currentQuestionIndex = index;
+    questionCards.forEach(function(card, cardIndex) {
+        card.classList.toggle("exam-question-hidden", cardIndex !== currentQuestionIndex);
+    });
+    jumpButtons.forEach(function(button, buttonIndex) {
+        button.classList.toggle("is-active", buttonIndex === currentQuestionIndex);
+    });
+    updateQuestionProgress();
+}
+
+function sendHeartbeat() {
+    if (submitFormOkay) {
+        return;
+    }
+    fetch(`/exams/student/appear/{{ exam.id }}/heartbeat/`, {
+        method: "POST",
+        credentials: "same-origin",
+        headers: {
+            "X-CSRFToken": getCookie("csrftoken"),
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            session_token: examToken
+        })
+    })
+    .then(function(response) {
+        if (response.status === 409) {
+            showWarning("This exam session is no longer active. Please reopen the exam page.");
+            submitFormOkay = true;
+            window.onbeforeunload = null;
+        }
+    })
+    .catch(function() {});
+}
+
+function logViolation(violationType, detail) {
+    fetch(`/exams/student/appear/{{ exam.id }}/log-violation/`, {
+        method: "POST",
+        credentials: "same-origin",
+        headers: {
+            "X-CSRFToken": getCookie("csrftoken"),
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            session_token: examToken,
+            violation_type: violationType,
+            detail: detail,
+            violation_count: violationCount
+        })
+    }).catch(function() {});
+}
+
+function isFullscreenActive() {
+    return Boolean(
+        document.fullscreenElement ||
+        document.webkitFullscreenElement ||
+        document.msFullscreenElement
+    );
+}
+
+function setExamLockedState(isLocked) {
+    if (examLockedState === isLocked) {
+        return;
+    }
+    examLockedState = isLocked;
+    examForm.classList.toggle("exam-locked", isLocked);
+    fullscreenGate.hidden = !isLocked;
+    fullscreenButton.textContent = isLocked ? "Enter Fullscreen" : "Fullscreen Active";
+}
+
+function registerViolation(reason, violationType = "warning") {
+    if (submitFormOkay || !monitoringArmed) {
+        return;
+    }
+    violationCount += 1;
+    warningCountEl.textContent = `${violationCount} / ${maxViolations}`;
+    showWarning(`Warning ${violationCount}/${maxViolations}: ${reason}`);
+    logViolation(violationType, reason);
+
+    if (violationCount >= 3) {
+        reportCheatingOnce();
+    }
+
+    if (violationCount >= maxViolations) {
+        showWarning("Maximum warnings reached. Your exam is being submitted automatically.");
+        window.onbeforeunload = undefined;
+        submitFormOkay = true;
+        setTimeout(function() {
+            examForm.submit();
+        }, 800);
+    }
+}
+
+function requestFullscreen() {
+    const el = document.documentElement;
+    if (el.requestFullscreen) {
+        return el.requestFullscreen();
+    } else if (el.webkitRequestFullscreen) {
+        el.webkitRequestFullscreen();
+        return Promise.resolve();
+    } else if (el.msRequestFullscreen) {
+        el.msRequestFullscreen();
+        return Promise.resolve();
+    }
+    return Promise.reject(new Error("Fullscreen is not supported in this browser."));
+}
+
+function beginFullscreenFlow() {
+    return requestFullscreen().catch(function() {
+        showWarning("Fullscreen could not be started automatically. Please allow fullscreen and try again.");
+    });
+}
+
+function setProctorBadge(text, stateClass) {
+    const nextClassName = "exam-proctor-badge" + (stateClass ? ` ${stateClass}` : "");
+    if (lastProctorBadgeText === text && lastProctorBadgeClass === nextClassName) {
+        return;
+    }
+    lastProctorBadgeText = text;
+    lastProctorBadgeClass = nextClassName;
+    proctorStatusBadge.textContent = text;
+    proctorStatusBadge.className = nextClassName;
+}
+
+function setGateCheck(element, label, state) {
+    const nextText = `${label}: ${state}`;
+    if (element === gateCameraStatusEl) {
+        if (lastGateCameraText === nextText) {
+            return;
+        }
+        lastGateCameraText = nextText;
+    } else if (element === gateMicStatusEl) {
+        if (lastGateMicText === nextText) {
+            return;
+        }
+        lastGateMicText = nextText;
+    } else if (element === gateFaceStatusEl) {
+        if (lastGateFaceText === nextText) {
+            return;
+        }
+        lastGateFaceText = nextText;
+    } else if (element === gateGazeStatusEl) {
+        if (lastGateGazeText === nextText) {
+            return;
+        }
+        lastGateGazeText = nextText;
+    }
+    element.textContent = nextText;
+}
+
+function getStableFaceCount(now) {
+    if (latestFaceCount !== pendingFaceCount) {
+        pendingFaceCount = latestFaceCount;
+        pendingFaceSince = now;
+    }
+    if (displayedFaceCount !== latestFaceCount && now - pendingFaceSince >= proctorUiThresholds.faceMs) {
+        displayedFaceCount = latestFaceCount;
+    }
+    return displayedFaceCount;
+}
+
+function getStableGazeState(now, stableFaceCount) {
+    const rawGaze = stableFaceCount === 1 ? latestGazeOnScreen : false;
+    if (rawGaze !== pendingGazeOnScreen) {
+        pendingGazeOnScreen = rawGaze;
+        pendingGazeSince = now;
+    }
+    if (displayedGazeOnScreen !== rawGaze && now - pendingGazeSince >= proctorUiThresholds.gazeMs) {
+        displayedGazeOnScreen = rawGaze;
+    }
+    return stableFaceCount === 1 ? displayedGazeOnScreen : false;
+}
+
+function getStableAudioState(now) {
+    if (latestAudioState !== pendingAudioState) {
+        pendingAudioState = latestAudioState;
+        pendingAudioSince = now;
+    }
+    if (displayedAudioState !== latestAudioState && now - pendingAudioSince >= proctorUiThresholds.audioMs) {
+        displayedAudioState = latestAudioState;
+    }
+    return displayedAudioState;
+}
+
+function getStableProctorSnapshot(now) {
+    const faceCount = getStableFaceCount(now);
+    const gazeOnScreen = getStableGazeState(now, faceCount);
+    const audioState = getStableAudioState(now);
+    return { faceCount, gazeOnScreen, audioState };
+}
+
+  function setProctorMessage(message) {
+      if (lastProctorMessage === message) {
+          return;
+      }
+      lastProctorMessage = message;
+      proctorGateMessageEl.textContent = message;
+  }
+
+  function setProctorFailureState(badge, message, violationType) {
+      setExamLockedState(true);
+      setProctorBadge(badge, "is-alert");
+      setProctorMessage(message);
+      if (violationType) {
+          logViolation(violationType, message);
+      }
+  }
+
+function updateProctorStatusUI(faceCount, gazeOnScreen) {
+    const stableSnapshot = getStableProctorSnapshot(Date.now());
+    const cameraState = proctorStream ? "Live" : "Waiting";
+    const micState = micReady ? "Ready" : "Waiting";
+    const faceState = stableSnapshot.faceCount === 0 ? "No face" : stableSnapshot.faceCount === 1 ? "One face" : `${stableSnapshot.faceCount} faces`;
+    const gazeState = stableSnapshot.faceCount !== 1 ? "Waiting" : stableSnapshot.gazeOnScreen ? "On-screen" : "Away";
+    const cameraText = `Camera: ${cameraState}`;
+    const micText = `Mic: ${micState}`;
+    const audioText = `Audio Activity: ${stableSnapshot.audioState}`;
+    const faceText = `Faces: ${faceState}`;
+    const gazeText = `Gaze: ${gazeState}`;
+
+    if (lastCameraStatusText !== cameraText) {
+        lastCameraStatusText = cameraText;
+        cameraStatusEl.textContent = cameraText;
+    }
+    if (lastMicStatusText !== micText) {
+        lastMicStatusText = micText;
+        micStatusEl.textContent = micText;
+    }
+    if (lastAudioStatusText !== audioText) {
+        lastAudioStatusText = audioText;
+        audioStatusEl.textContent = audioText;
+    }
+    if (lastFaceStatusText !== faceText) {
+        lastFaceStatusText = faceText;
+        faceStatusEl.textContent = faceText;
+    }
+    if (lastGazeStatusText !== gazeText) {
+        lastGazeStatusText = gazeText;
+        gazeStatusEl.textContent = gazeText;
+    }
+    setGateCheck(gateCameraStatusEl, "Camera", cameraState);
+    setGateCheck(gateMicStatusEl, "Mic", micState);
+    setGateCheck(gateFaceStatusEl, "Face Check", faceState);
+    setGateCheck(gateGazeStatusEl, "Gaze Check", gazeState);
+}
+
+function evaluatePrecheckReadiness(now) {
+    const stableSnapshot = getStableProctorSnapshot(now);
+    const networkAssessment = navigator.onLine ? latestExamNetworkAssessment : getExamNetworkAssessment();
+    if (ambientLearningActive && !hasExamStarted) {
+        setExamLockedState(true);
+    }
+
+    if (latestFaceCount === 1) {
+        stableSingleFaceSince = stableSingleFaceSince || now;
+    } else {
+        stableSingleFaceSince = null;
+    }
+
+    if (latestFaceCount === 1 && latestGazeOnScreen) {
+        stableGazeSince = stableGazeSince || now;
+    } else {
+        stableGazeSince = null;
+    }
+
+    if (micReady && latestFaceCount === 1 && latestGazeOnScreen && ambientLearningActive) {
+        if (latestAudioState === "Speech Detected") {
+            setProctorBadge("Stay Quiet", "is-alert");
+            setProctorMessage("Stay quiet and face the screen while the room-noise profile is prepared.");
+        } else {
+            ambientLearningStartedAt = ambientLearningStartedAt || now;
+            if (latestAdaptiveAudioSample > 0) {
+                ambientLearningSamples.push(latestAdaptiveAudioSample);
+            }
+            const remainingMs = Math.max(0, ambientLearningDurationMs - (now - ambientLearningStartedAt));
+            if (remainingMs <= 0) {
+                if (ambientLearningSamples.length) {
+                    const averageSample = ambientLearningSamples.reduce(function(acc, value) { return acc + value; }, 0) / ambientLearningSamples.length;
+                    audioBaselineLevel = Math.max(audioBaselineLevel, Math.min(0.12, averageSample * 0.32));
+                }
+                ambientLearningActive = false;
+                ambientLearningComplete = true;
+                ambientLearningStartedAt = null;
+                ambientLearningSamples = [];
+            } else {
+                const remainingSeconds = Math.ceil(remainingMs / 1000);
+                setProctorBadge("Learning Room", "is-checking");
+                setProctorMessage(`Stay quiet and face the screen. Preparing the room-noise profile for ${remainingSeconds}s before the exam can begin.`);
+            }
+        }
+    } else if (ambientLearningActive) {
+        setProctorBadge("Hold Steady", "is-alert");
+        setProctorMessage("Keep one face visible, look at the screen, and stay quiet while the room-noise profile continues.");
+    }
+
+    proctorReady = Boolean(
+        !networkAssessment.blocksStart &&
+        micReady &&
+        ambientLearningComplete &&
+        stableSingleFaceSince &&
+        stableGazeSince &&
+        now - stableSingleFaceSince >= proctorThresholds.precheckMs &&
+        now - stableGazeSince >= proctorThresholds.precheckMs
+    );
+
+    if (!hasExamStarted) {
+        if (!proctorStream) {
+            setProctorBadge("Waiting", "is-waiting");
+            setProctorMessage("Click below to allow the webcam and microphone and start the pre-check.");
+        } else if (networkAssessment.blocksStart) {
+            setExamLockedState(true);
+            setProctorBadge("Offline", "is-alert");
+            setProctorMessage("Internet connection is offline. Reconnect so autosave, heartbeat, and violation logging can work before the exam begins.");
+        } else if (!micReady) {
+            setProctorBadge("Mic Required", "is-alert");
+            setProctorMessage("Microphone access is required before the exam can begin.");
+        } else if (ambientLearningActive || !ambientLearningComplete) {
+            setExamLockedState(true);
+            setProctorBadge("Learning Room", "is-checking");
+            if (!ambientLearningStartedAt) {
+                    setProctorMessage(
+                        networkAssessment.state === "is-poor" || networkAssessment.state === "is-fair"
+                            ? "Stay quiet and face the screen while the room-noise profile is prepared. Network quality is weaker than ideal, but pre-check can continue."
+                            : "Stay quiet and face the screen while the room-noise profile is prepared."
+                    );
+            }
+        } else if (stableSnapshot.faceCount === 0) {
+            setProctorBadge("No Face", "is-alert");
+            setProctorMessage("No face detected. Move into the camera frame.");
+        } else if (stableSnapshot.faceCount > 1) {
+            setProctorBadge("Multiple Faces", "is-alert");
+            setProctorMessage("More than one face is visible. Only one candidate is allowed.");
+        } else if (!stableSnapshot.gazeOnScreen) {
+            setProctorBadge("Look At Screen", "is-alert");
+            setProctorMessage("Keep your eyes on the screen until the pre-check passes.");
+        } else if (proctorReady) {
+            setProctorBadge("Ready", "is-ready");
+            setProctorMessage(
+                networkAssessment.state === "is-poor" || networkAssessment.state === "is-fair"
+                    ? "Pre-check passed. Enter fullscreen to begin the exam. Network quality is weaker than ideal, so keep the connection stable."
+                    : "Pre-check passed. Enter fullscreen to begin the exam."
+            );
+        } else {
+            setProctorBadge("Checking", "is-checking");
+            setProctorMessage("Hold steady for a moment while the pre-check completes.");
+        }
+    }
+}
+
+function triggerTimedViolation(type, thresholdMs, message) {
+    const now = Date.now();
+    if (!violationTimers[type]) {
+        violationTimers[type] = now;
+        return;
+    }
+    if (now - violationTimers[type] < thresholdMs) {
+        return;
+    }
+    const lastTriggered = violationCooldowns[type] || 0;
+    if (now - lastTriggered < proctorThresholds.cooldownMs) {
+        return;
+    }
+    violationCooldowns[type] = now;
+    violationTimers[type] = now;
+    registerViolation(message, type);
+}
+
+function clearTimedViolation(type) {
+    violationTimers[type] = null;
+}
+
+function drawAudioSpectrum(level, stateLabel, waveform) {
+    if (!audioSpectrumContext || !audioSpectrumCanvas) {
+        return;
+    }
+
+    const width = audioSpectrumCanvas.width;
+    const height = audioSpectrumCanvas.height;
+    const isLightTheme = document.body.classList.contains("theme-light");
+    audioSpectrumContext.clearRect(0, 0, width, height);
+    const backgroundGradient = audioSpectrumContext.createLinearGradient(0, 0, width, height);
+    if (isLightTheme) {
+        backgroundGradient.addColorStop(0, "rgba(226, 235, 255, 0.24)");
+        backgroundGradient.addColorStop(0.5, "rgba(217, 232, 255, 0.18)");
+        backgroundGradient.addColorStop(1, "rgba(232, 241, 255, 0.22)");
+    } else {
+        backgroundGradient.addColorStop(0, "rgba(16, 25, 58, 0.26)");
+        backgroundGradient.addColorStop(0.45, "rgba(47, 69, 166, 0.18)");
+        backgroundGradient.addColorStop(1, "rgba(20, 132, 229, 0.22)");
+    }
+    audioSpectrumContext.fillStyle = backgroundGradient;
+    audioSpectrumContext.fillRect(0, 0, width, height);
+
+    const fillGradient = audioSpectrumContext.createLinearGradient(0, 0, width, 0);
+    fillGradient.addColorStop(0, "rgba(116, 99, 255, 0.20)");
+    fillGradient.addColorStop(0.33, "rgba(183, 110, 255, 0.34)");
+    fillGradient.addColorStop(0.52, "rgba(255, 91, 208, 0.42)");
+    fillGradient.addColorStop(0.78, "rgba(108, 176, 255, 0.30)");
+    fillGradient.addColorStop(1, "rgba(116, 99, 255, 0.14)");
+    const glowGradient = audioSpectrumContext.createLinearGradient(0, 0, width, 0);
+    glowGradient.addColorStop(0, "rgba(255,255,255,0)");
+    glowGradient.addColorStop(0.24, "rgba(194, 139, 255, 0.84)");
+    glowGradient.addColorStop(0.5, "rgba(255, 140, 227, 0.98)");
+    glowGradient.addColorStop(0.76, "rgba(112, 190, 255, 0.84)");
+    glowGradient.addColorStop(1, "rgba(255,255,255,0)");
+    const baselineY = height / 2;
+    const samples = Array.isArray(waveform) && waveform.length ? waveform : [0];
+    const stepX = width / Math.max(samples.length - 1, 1);
+    const amplitude = Math.max(10, Math.min(height * 0.34, 14 + level * 126));
+
+    audioSpectrumContext.strokeStyle = isLightTheme ? "rgba(108, 132, 184, 0.22)" : "rgba(255, 255, 255, 0.14)";
+    audioSpectrumContext.lineWidth = 1.1;
+    audioSpectrumContext.beginPath();
+    audioSpectrumContext.moveTo(0, baselineY);
+    audioSpectrumContext.lineTo(width, baselineY);
+    audioSpectrumContext.stroke();
+
+    audioSpectrumContext.beginPath();
+    for (let i = 0; i < samples.length; i += 1) {
+        const x = i * stepX;
+        const y = baselineY - (samples[i] * amplitude);
+        if (i === 0) {
+            audioSpectrumContext.moveTo(x, y);
+        } else {
+            audioSpectrumContext.lineTo(x, y);
+        }
+    }
+    for (let i = samples.length - 1; i >= 0; i -= 1) {
+        const x = i * stepX;
+        const y = baselineY + (samples[i] * amplitude);
+        audioSpectrumContext.lineTo(x, y);
+    }
+    audioSpectrumContext.closePath();
+    audioSpectrumContext.fillStyle = fillGradient;
+    audioSpectrumContext.fill();
+
+    audioSpectrumContext.strokeStyle = glowGradient;
+    audioSpectrumContext.shadowBlur = 22;
+    audioSpectrumContext.shadowColor = isLightTheme ? "rgba(144, 121, 255, 0.38)" : "rgba(255, 120, 222, 0.64)";
+    audioSpectrumContext.lineWidth = 4;
+    audioSpectrumContext.lineJoin = "round";
+    audioSpectrumContext.lineCap = "round";
+    audioSpectrumContext.beginPath();
+    for (let i = 0; i < samples.length; i += 1) {
+        const x = i * stepX;
+        const y = baselineY - (samples[i] * amplitude * 0.92);
+        if (i === 0) {
+            audioSpectrumContext.moveTo(x, y);
+        } else {
+            audioSpectrumContext.lineTo(x, y);
+        }
+    }
+    audioSpectrumContext.stroke();
+    audioSpectrumContext.shadowBlur = 0;
+
+    const centerLineGradient = audioSpectrumContext.createLinearGradient(0, 0, width, 0);
+    centerLineGradient.addColorStop(0, "rgba(255,255,255,0)");
+    centerLineGradient.addColorStop(0.28, "rgba(214, 196, 255, 0.68)");
+    centerLineGradient.addColorStop(0.5, "rgba(255, 232, 248, 0.95)");
+    centerLineGradient.addColorStop(0.72, "rgba(168, 224, 255, 0.66)");
+    centerLineGradient.addColorStop(1, "rgba(255,255,255,0)");
+    audioSpectrumContext.strokeStyle = centerLineGradient;
+    audioSpectrumContext.lineWidth = 2.2;
+    audioSpectrumContext.beginPath();
+    audioSpectrumContext.moveTo(0, baselineY);
+    audioSpectrumContext.lineTo(width, baselineY);
+    audioSpectrumContext.stroke();
+
+    const labelBackground = isLightTheme ? "rgba(255, 255, 255, 0.44)" : "rgba(8, 18, 44, 0.42)";
+    audioSpectrumContext.fillStyle = labelBackground;
+    audioSpectrumContext.beginPath();
+    audioSpectrumContext.roundRect(10, 8, 142, 18, 10);
+    audioSpectrumContext.fill();
+    audioSpectrumContext.beginPath();
+    audioSpectrumContext.roundRect(width - 108, 8, 98, 18, 10);
+    audioSpectrumContext.fill();
+
+    audioSpectrumContext.fillStyle = isLightTheme ? "rgba(24, 40, 78, 0.98)" : "rgba(255, 248, 255, 0.98)";
+    audioSpectrumContext.font = "600 12px Segoe UI, sans-serif";
+    audioSpectrumContext.fillText(stateLabel, 14, 18);
+    audioSpectrumContext.fillStyle = isLightTheme ? "rgba(58, 83, 133, 0.92)" : "rgba(246, 242, 255, 0.88)";
+    audioSpectrumContext.font = "500 11px Segoe UI, sans-serif";
+    audioSpectrumContext.fillText(`Level ${(Math.min(level, 1) * 100).toFixed(0)}%`, width - 96, 18);
+}
+
+function getDynamicAudioThreshold(baseThreshold) {
+    if (!audioCalibrationReady) {
+        return baseThreshold;
+    }
+    return Math.max(baseThreshold, audioBaselineLevel + baseThreshold);
+}
+
+function evaluateAudioViolations(now) {
+    if (!micReady) {
+        speechDetectedSince = null;
+        clearTimedViolation("audio_activity");
+        latestAudioState = "Waiting";
+        return;
+    }
+
+    const speechTrigger = getDynamicAudioThreshold(proctorThresholds.speechThreshold);
+    const ambientTrigger = getDynamicAudioThreshold(proctorThresholds.ambientThreshold);
+    const strongSpeechLevel = latestAudioLevel >= Math.max(speechTrigger * 0.68, ambientTrigger + 0.002);
+    const strongVoiceBand = latestVoiceBandLevel >= Math.max(audioBaselineLevel * 0.85, 0.008);
+    const strongVoiceMatch = latestVoiceLikelihood >= Math.max(proctorThresholds.voiceMatchThreshold * 0.38, 0.42);
+    const strongMouthMovement = latestMouthActivity >= 0.008 || latestMouthRatio >= 0.012;
+    const speechSignaturePresent = strongMouthMovement && (strongVoiceBand || strongVoiceMatch || latestAudioLevel >= speechTrigger * 0.92);
+
+    if (strongSpeechLevel && speechSignaturePresent) {
+        speechDetectedSince = speechDetectedSince || now;
+        latestAudioState = (now - speechDetectedSince) >= 120 ? "Speech Detected" : "Ambient Sound";
+    } else if (latestAudioLevel >= ambientTrigger) {
+        speechDetectedSince = null;
+        latestAudioState = "Ambient Sound";
+        clearTimedViolation("audio_activity");
+        return;
+    } else {
+        speechDetectedSince = null;
+        latestAudioState = "Quiet";
+        clearTimedViolation("audio_activity");
+        return;
+    }
+
+    if (latestAudioState !== "Speech Detected") {
+        clearTimedViolation("audio_activity");
+        return;
+    }
+
+    if (!hasExamStarted || !monitoringArmed) {
+        clearTimedViolation("audio_activity");
+        return;
+    }
+
+    triggerTimedViolation(
+        "audio_activity",
+        proctorThresholds.audioNoiseMs,
+        "Sustained speaking was detected through the microphone."
+    );
+}
+
+function startAudioMonitoringLoop() {
+    if (!audioAnalyser || !audioDataArray || !audioFrequencyDataArray) {
+        return;
+    }
+
+    const step = function() {
+        if (submitFormOkay) {
+            return;
+        }
+
+        audioAnalyser.getByteTimeDomainData(audioDataArray);
+        audioAnalyser.getByteFrequencyData(audioFrequencyDataArray);
+        let sumSquares = 0;
+        let peak = 0;
+        const waveform = [];
+        const waveformStep = Math.max(1, Math.floor(audioDataArray.length / 72));
+        for (let i = 0; i < audioDataArray.length; i += 1) {
+            const normalized = (audioDataArray[i] - 128) / 128;
+            const magnitude = Math.abs(normalized);
+            sumSquares += normalized * normalized;
+            if (magnitude > peak) {
+                peak = magnitude;
+            }
+            if (i % waveformStep === 0) {
+                waveform.push(normalized);
+            }
+        }
+
+        const rms = audioDataArray.length ? Math.sqrt(sumSquares / audioDataArray.length) : 0;
+        let spectralSum = 0;
+        let spectralPeak = 0;
+        const frequencyResolution = audioContext ? (audioContext.sampleRate / audioAnalyser.fftSize) : 1;
+        let lowBandSum = 0;
+        let lowBandCount = 0;
+        let voiceBandSum = 0;
+        let voiceBandCount = 0;
+        let upperBandSum = 0;
+        let upperBandCount = 0;
+
+        for (let i = 0; i < audioFrequencyDataArray.length; i += 1) {
+            const frequency = i * frequencyResolution;
+            const normalized = audioFrequencyDataArray[i] / 255;
+            spectralSum += normalized;
+            if (normalized > spectralPeak) {
+                spectralPeak = normalized;
+            }
+            if (frequency >= 60 && frequency <= 220) {
+                lowBandSum += normalized;
+                lowBandCount += 1;
+            } else if (frequency >= 250 && frequency <= 3200) {
+                voiceBandSum += normalized;
+                voiceBandCount += 1;
+            } else if (frequency > 3200 && frequency <= 6000) {
+                upperBandSum += normalized;
+                upperBandCount += 1;
+            }
+        }
+
+        const lowBandAverage = lowBandCount ? (lowBandSum / lowBandCount) : 0;
+        const voiceBandAverage = voiceBandCount ? (voiceBandSum / voiceBandCount) : 0;
+        const upperBandAverage = upperBandCount ? (upperBandSum / upperBandCount) : 0;
+        const spectralAverage = audioFrequencyDataArray.length ? (spectralSum / Math.max(audioFrequencyDataArray.length, 1)) : 0;
+        latestAudioWaveform = waveform;
+        latestAudioLevel = Math.max(
+            0,
+            (rms - audioBaselineLevel) * 4.2,
+            peak * 0.62 - audioBaselineLevel * 0.95,
+            (spectralAverage * 1.55) - (audioBaselineLevel * 0.55),
+            (spectralPeak * 0.72) - (audioBaselineLevel * 0.35)
+        );
+        latestAdaptiveAudioSample = Math.max(0, (rms * 4.2), (peak * 0.62), (spectralAverage * 1.55), (spectralPeak * 0.72), (voiceBandAverage * 1.15));
+        latestVoiceBandLevel = voiceBandAverage;
+        latestVoiceLikelihood = voiceBandAverage > 0
+            ? voiceBandAverage / Math.max(0.04, (lowBandAverage * 0.85) + (upperBandAverage * 0.55))
+            : 0;
+        evaluateAudioViolations(Date.now());
+        drawAudioSpectrum(latestAudioLevel, latestAudioState, latestAudioWaveform);
+        updateProctorStatusUI(latestFaceCount, latestGazeOnScreen);
+
+        audioLoopHandle = window.requestAnimationFrame(step);
+    };
+
+    if (!audioLoopHandle) {
+        audioLoopHandle = window.requestAnimationFrame(step);
+    }
+}
+
+function evaluateLiveProctorViolations() {
+    if (!hasExamStarted || !monitoringArmed) {
+        return;
+    }
+    const stableSnapshot = getStableProctorSnapshot(Date.now());
+    if (latestFaceCount === 0) {
+        triggerTimedViolation("no_face", proctorThresholds.noFaceMs, "No face was detected in the webcam feed.");
+        clearTimedViolation("multi_face");
+        clearTimedViolation("gaze_away");
+        if (stableSnapshot.faceCount === 0) {
+            setProctorBadge("No Face", "is-alert");
+        }
+        return;
+    }
+    if (latestFaceCount > 1) {
+        triggerTimedViolation("multi_face", proctorThresholds.multiFaceMs, "Multiple faces were detected in the webcam feed.");
+        clearTimedViolation("no_face");
+        clearTimedViolation("gaze_away");
+        if (stableSnapshot.faceCount > 1) {
+            setProctorBadge("Multiple Faces", "is-alert");
+        }
+        return;
+    }
+    clearTimedViolation("no_face");
+    clearTimedViolation("multi_face");
+
+    if (!latestGazeOnScreen) {
+        triggerTimedViolation("gaze_away", proctorThresholds.gazeAwayMs, "You looked away from the screen for too long.");
+        if (!stableSnapshot.gazeOnScreen) {
+            setProctorBadge("Look At Screen", "is-alert");
+        }
+        return;
+    }
+
+    clearTimedViolation("gaze_away");
+    setProctorBadge("Monitoring", "is-live");
+}
+
+function isGazeOnScreen(landmarks) {
+    const averagePoint = function(indices) {
+        const total = indices.reduce(function(acc, index) {
+            acc.x += landmarks[index].x;
+            acc.y += landmarks[index].y;
+            return acc;
+        }, { x: 0, y: 0 });
+        return {
+            x: total.x / indices.length,
+            y: total.y / indices.length
+        };
+    };
+
+    const leftIris = averagePoint([468, 469, 470, 471, 472]);
+    const rightIris = averagePoint([473, 474, 475, 476, 477]);
+
+    const leftEyeHorizontal = (leftIris.x - landmarks[33].x) / Math.max(0.001, landmarks[133].x - landmarks[33].x);
+    const rightEyeHorizontal = (rightIris.x - landmarks[362].x) / Math.max(0.001, landmarks[263].x - landmarks[362].x);
+    const leftEyeVertical = (leftIris.y - landmarks[159].y) / Math.max(0.001, landmarks[145].y - landmarks[159].y);
+    const rightEyeVertical = (rightIris.y - landmarks[386].y) / Math.max(0.001, landmarks[374].y - landmarks[386].y);
+
+    const horizontalAverage = (leftEyeHorizontal + rightEyeHorizontal) / 2;
+    const verticalAverage = (leftEyeVertical + rightEyeVertical) / 2;
+    const eyeBalance = Math.abs(leftEyeHorizontal - rightEyeHorizontal);
+    const noseToLeftEye = Math.abs(landmarks[1].x - landmarks[33].x);
+    const noseToRightEye = Math.abs(landmarks[263].x - landmarks[1].x);
+    const headTurnRatio = noseToLeftEye / Math.max(0.001, noseToRightEye);
+
+    return horizontalAverage > 0.29 &&
+        horizontalAverage < 0.71 &&
+        verticalAverage > 0.23 &&
+        verticalAverage < 0.77 &&
+        eyeBalance < 0.24 &&
+        headTurnRatio > 0.64 &&
+        headTurnRatio < 1.5;
+}
+
+function getMouthActivity(landmarks) {
+    const upperLip = landmarks[13];
+    const lowerLip = landmarks[14];
+    const leftMouth = landmarks[78];
+    const rightMouth = landmarks[308];
+    const mouthHeight = Math.abs(lowerLip.y - upperLip.y);
+    const mouthWidth = Math.max(Math.abs(rightMouth.x - leftMouth.x), 0.0001);
+    return mouthHeight / mouthWidth;
+}
+
+function updateMouthActivity(landmarks) {
+    const currentRatio = getMouthActivity(landmarks);
+    const movementDelta = Math.abs(currentRatio - latestMouthRatio);
+    latestMouthRatio = currentRatio;
+    latestMouthActivity = (latestMouthActivity * 0.72) + (movementDelta * 6.2) + (currentRatio * 0.22);
+}
+
+async function runProctorDetection() {
+    if (!proctorLandmarker || !proctorVideo || proctorVideo.readyState < 2 || submitFormOkay) {
+        proctorLoopHandle = window.requestAnimationFrame(runProctorDetection);
+        return;
+    }
+
+        try {
+            const result = proctorLandmarker.detectForVideo(proctorVideo, performance.now());
+        latestFaceCount = (result.faceLandmarks || []).length;
+        if (latestFaceCount === 1) {
+            latestGazeOnScreen = isGazeOnScreen(result.faceLandmarks[0]);
+            updateMouthActivity(result.faceLandmarks[0]);
+        } else {
+            latestGazeOnScreen = false;
+            latestMouthActivity = 0;
+            latestMouthRatio = 0;
+        }
+        updateProctorStatusUI(latestFaceCount, latestGazeOnScreen);
+        evaluatePrecheckReadiness(Date.now());
+
+        if (!ambientLearningComplete || ambientLearningActive) {
+            setExamLockedState(true);
+        } else if (proctorReady && isFullscreenActive() && !hasExamStarted) {
+            hasExamStarted = true;
+            setExamLockedState(false);
+            setProctorBadge("Monitoring", "is-live");
+            armMonitoring();
+        }
+
+          evaluateLiveProctorViolations();
+      } catch (error) {
+          setProctorFailureState("Camera Error", "Webcam monitoring could not continue. Refresh the exam page and try again.", "camera_error");
+      }
+
+    proctorLoopHandle = window.requestAnimationFrame(runProctorDetection);
+}
+
+async function initProctoring() {
+    if (proctorInitPromise) {
+        return proctorInitPromise;
+    }
+
+    proctorInitPromise = (async function() {
+        setProctorBadge("Starting", "is-checking");
+        setProctorMessage("Requesting camera and microphone access...");
+        updateProctorStatusUI(0, false);
+
+        const visionModule = await import("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/vision_bundle.mjs");
+        const FilesetResolver = visionModule.FilesetResolver;
+        const FaceLandmarker = visionModule.FaceLandmarker;
+
+          proctorStream = await navigator.mediaDevices.getUserMedia({
+              video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } },
+              audio: {
+                  echoCancellation: true,
+                  noiseSuppression: true,
+                autoGainControl: true
+            }
+          });
+          proctorVideo.srcObject = proctorStream;
+          await proctorVideo.play();
+
+          proctorStream.getVideoTracks().forEach(function(track) {
+              track.addEventListener("ended", function() {
+                  setProctorFailureState("Camera Lost", "Webcam access stopped during the exam. Reconnect the camera and reopen the exam.", "camera_disconnected");
+                  showWarning("Webcam access stopped. Reconnect the camera and reopen the exam.");
+              });
+          });
+          proctorStream.getAudioTracks().forEach(function(track) {
+              track.addEventListener("ended", function() {
+                  micReady = false;
+                  setProctorFailureState("Mic Lost", "Microphone access stopped during the exam. Reconnect the mic and reopen the exam.", "mic_disconnected");
+                  showWarning("Microphone access stopped. Reconnect the microphone and reopen the exam.");
+              });
+          });
+
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioContext.state === "suspended") {
+            await audioContext.resume();
+        }
+        const audioSource = audioContext.createMediaStreamSource(proctorStream);
+        audioAnalyser = audioContext.createAnalyser();
+        audioAnalyser.fftSize = 512;
+        audioAnalyser.smoothingTimeConstant = 0.22;
+        audioDataArray = new Uint8Array(audioAnalyser.fftSize);
+        audioFrequencyDataArray = new Uint8Array(audioAnalyser.frequencyBinCount);
+        audioSource.connect(audioAnalyser);
+        micReady = true;
+        latestAudioState = "Quiet";
+        latestVoiceLikelihood = 0;
+        audioBaselineLevel = Number("{{ proctoring_settings.idle_baseline|floatformat:3 }}");
+        audioCalibrationStartedAt = null;
+        audioCalibrationReady = true;
+        ambientLearningStartedAt = null;
+        ambientLearningActive = true;
+        ambientLearningComplete = false;
+        ambientLearningSamples = [];
+        latestAudioWaveform = [];
+        drawAudioSpectrum(0.02, "Mic Ready", latestAudioWaveform);
+        startAudioMonitoringLoop();
+
+        const filesetResolver = await FilesetResolver.forVisionTasks(
+            "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm"
+        );
+
+        proctorLandmarker = await FaceLandmarker.createFromOptions(filesetResolver, {
+            baseOptions: {
+                modelAssetPath: "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task"
+            },
+            runningMode: "VIDEO",
+            numFaces: 2,
+            outputFaceBlendshapes: false,
+            outputFacialTransformationMatrixes: false,
+            minFaceDetectionConfidence: 0.5,
+            minFacePresenceConfidence: 0.5,
+            minTrackingConfidence: 0.5
+        });
+
+        updateProctorStatusUI(0, false);
+        if (!proctorLoopHandle) {
+            proctorLoopHandle = window.requestAnimationFrame(runProctorDetection);
+        }
+      })().catch(function(error) {
+          console.error(error);
+          const permissionDenied = error && (error.name === "NotAllowedError" || error.name === "SecurityError");
+          setProctorFailureState(
+              permissionDenied ? "Permissions" : "Blocked",
+              permissionDenied
+                  ? "Camera and microphone permission were denied. Allow both permissions and try again."
+                  : "Camera and microphone access are required to start this exam.",
+              permissionDenied ? "camera_permission" : "model_error"
+          );
+          showWarning("Camera and microphone access are required for this exam. Please allow both permissions and try again.");
+          throw error;
+      });
+
+    return proctorInitPromise;
+}
+
+async function startProctoredExam() {
+    startExamButton.disabled = true;
+    startExamButton.textContent = "Starting...";
+    try {
+        await initProctoring();
+        await beginFullscreenFlow();
+        if (!proctorReady) {
+            const networkAssessment = getExamNetworkAssessment();
+            setProctorMessage(
+                networkAssessment.blocksStart
+                    ? "Camera and mic started, but your internet is offline. Reconnect so the 40-second precheck can finish safely."
+                    : networkAssessment.state === "is-poor" || networkAssessment.state === "is-fair"
+                        ? "Camera and mic started. Stay quiet, well-lit, and face the screen while the 40-second room-noise check completes. Network quality is weaker than ideal, but monitoring can continue."
+                        : "Camera and mic started. Stay quiet, well-lit, and face the screen while the 40-second room-noise check completes."
+            );
+        }
+    } finally {
+        startExamButton.disabled = false;
+        startExamButton.textContent = "Enable Camera, Mic, And Start";
+    }
+}
+
+fullscreenButton.addEventListener("click", beginFullscreenFlow);
+startExamButton.addEventListener("click", startProctoredExam);
+
+examForm.querySelectorAll('input[type="radio"]').forEach(function(input) {
+    input.addEventListener('change', function() {
+        setAutosaveStatus('Saving...');
+        saveAnswers();
+        updateQuestionProgress();
+    });
+});
+
+previousQuestionButton.addEventListener("click", function() {
+    showQuestion(currentQuestionIndex - 1);
+});
+
+nextQuestionButton.addEventListener("click", function() {
+    if (!isCurrentQuestionAnswered()) {
+        showWarning("Select an option before moving to the next question.");
+        return;
+    }
+    showQuestion(currentQuestionIndex + 1);
+});
+
+jumpButtons.forEach(function(button) {
+    button.addEventListener("click", function() {
+        const targetIndex = Number(button.dataset.questionJump);
+        if (targetIndex > currentQuestionIndex && !isCurrentQuestionAnswered()) {
+            showWarning("Select an option before moving to the next question.");
+            return;
+        }
+        showQuestion(targetIndex);
+    });
+});
+
+function armMonitoring() {
+    if (monitoringArmed) {
+        return;
+    }
+    monitoringArmed = true;
+    showWarning("Exam monitoring is active. Stay in fullscreen and remain on this page while you answer.");
+    if (!autosaveTimer) {
+        autosaveTimer = window.setInterval(saveAnswers, 5000);
+    }
+    if (!heartbeatTimer) {
+        heartbeatTimer = window.setInterval(sendHeartbeat, 15000);
+    }
+    sendHeartbeat();
+    updateExamNetworkStatus();
+}
+
+document.addEventListener("visibilitychange", function() {
+    if (document.hidden) {
+        registerViolation("You switched tabs or minimized the exam window.");
+    }
+});
+
+window.addEventListener("blur", function() {
+    registerViolation("You moved away from the active exam window.");
+});
+
+document.addEventListener("fullscreenchange", function() {
+    if (isFullscreenActive()) {
+        if (proctorReady || hasExamStarted) {
+            setExamLockedState(false);
+            if (hasExamStarted) {
+                armMonitoring();
+            }
+        } else {
+            setProctorMessage("Fullscreen is active. Complete the webcam pre-check to unlock the exam.");
+        }
+        return;
+    }
+
+    if (!submitFormOkay) {
+        setExamLockedState(true);
+    }
+
+    if (monitoringArmed && !submitFormOkay) {
+        registerViolation("You exited fullscreen mode. Re-enter fullscreen to continue the exam.");
+    }
+});
+
+setExamLockedState(!isFullscreenActive());
+restoreAnswers();
+showQuestion(0);
+updateProctorStatusUI(0, false);
+setProctorBadge("Waiting", "is-waiting");
+updateExamNetworkStatus();
+
+runExamNetworkProbe();
+examNetworkProbeTimer = window.setInterval(runExamNetworkProbe, 5000);
+window.addEventListener("online", runExamNetworkProbe);
+window.addEventListener("offline", updateExamNetworkStatus);
+
+document.addEventListener("contextmenu", function(event) {
+    event.preventDefault();
+    registerViolation("Right-click is disabled during the exam.");
+});
+
+["copy", "cut", "paste"].forEach(function(eventName) {
+    document.addEventListener(eventName, function(event) {
+        event.preventDefault();
+        registerViolation(`${eventName.charAt(0).toUpperCase() + eventName.slice(1)} is disabled during the exam.`);
+    });
+});
+
+document.addEventListener("keydown", function(event) {
+    const key = event.key.toLowerCase();
+    const blocked =
+        event.ctrlKey ||
+        event.metaKey ||
+        event.altKey ||
+        key === "f12" ||
+        key === "printscreen";
+
+    if (blocked) {
+        event.preventDefault();
+        registerViolation("Restricted keyboard shortcut detected.");
+    }
+});
+
+window.onbeforeunload = function() {
+    return "Your work will be lost.";
+};
+
+let seconds = Number(document.getElementById("secs").value);
+let minutes = Number(document.getElementById("mins").value);
+
+function display() {
+    if (minutes === 0 && seconds === 0) {
+        window.onbeforeunload = undefined;
+        submitFormOkay = true;
+        clearAutosaveData();
+        examForm.submit();
+        return;
+    }
+    if (seconds === 0) {
+        minutes -= 1;
+        seconds = 60;
+    }
+    seconds -= 1;
+    document.getElementById("dsec").textContent = seconds;
+    document.getElementById("dmin").textContent = minutes;
+    setTimeout(display, 1000);
+}
+
+display();
+
+window.addEventListener("beforeunload", function() {
+    if (examNetworkProbeTimer) {
+        window.clearInterval(examNetworkProbeTimer);
+    }
+    if (proctorLoopHandle) {
+        window.cancelAnimationFrame(proctorLoopHandle);
+    }
+    if (audioLoopHandle) {
+        window.cancelAnimationFrame(audioLoopHandle);
+    }
+    if (proctorStream) {
+        proctorStream.getTracks().forEach(function(track) {
+            track.stop();
+        });
+    }
+    if (audioContext && typeof audioContext.close === "function") {
+        audioContext.close().catch(function() {});
+    }
+});
+</script>
+
+<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+</body>
+</html>

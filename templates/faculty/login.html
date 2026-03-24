@@ -1,0 +1,139 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Faculty Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/auth.css' %}">
+</head>
+<body data-auth-scope="faculty" data-auth-view="login">
+
+<a href="{% url 'homepage' %}" class="home-btn">
+    <i class="fas fa-home"></i>
+</a>
+
+<div class="auth-wrapper">
+    <div class="auth-form-box login-form-box">
+        <form method="post" action="{% url 'faculty-login' %}" class="js-auth-login-form">
+            {% csrf_token %}
+            <h1>Faculty Login</h1>
+
+            {% include 'partials/_messages.html' %}
+
+            <input type="text" name="username" placeholder="Username" required />
+            <input type="password" name="password" placeholder="Password" required />
+
+            <button type="submit">Sign In</button>
+            <div class="auth-form-footer">
+                <span class="auth-footer-caption">New faculty?</span>
+                <a href="{% url 'faculty-register' %}" class="auth-footer-link js-auth-switch-link" data-auth-scope="faculty" data-auth-target="register">Create Account</a>
+            </div>
+        </form>
+    </div>
+
+    <div class="auth-form-box register-form-box auth-preview-box" aria-hidden="true">
+        <div class="auth-preview-form">
+            <h1>Create Faculty Account</h1>
+            <p class="auth-preview-copy">Add your teaching details and request faculty access.</p>
+            <div class="auth-preview-fields">
+                <div class="auth-preview-field">Username</div>
+                <div class="auth-preview-field">Full Name</div>
+                <div class="auth-preview-field">Email Address</div>
+                <div class="auth-preview-field">Password</div>
+                <div class="auth-preview-field">Subject</div>
+                <div class="auth-preview-avatar">
+                    <span class="auth-preview-avatar-circle">
+                        <img src="{% static 'img/default-avatar.jpg' %}" alt="">
+                    </span>
+                    <span>Profile photo upload</span>
+                </div>
+            </div>
+            <button type="button" class="auth-preview-button" disabled>Sign Up</button>
+        </div>
+    </div>
+
+    <!-- Sliding Panel -->
+    <div class="slide-panel-wrapper">
+        <div class="slide-panel">
+            <div class="panel-content panel-content-right">
+                <h1>Join Faculty Portal</h1>
+                <p>Create your account</p>
+                <a href="{% url 'faculty-register' %}" class="transparent-btn auth-panel-link js-auth-switch-link" data-auth-scope="faculty" data-auth-target="register">Sign Up</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="auth-transition-overlay" id="facultyLoginOverlay" aria-hidden="true">
+    <div class="auth-transition-card">
+        <div class="auth-transition-brand" aria-hidden="true">
+            <span class="auth-transition-ring"></span>
+            <span class="auth-transition-ring auth-transition-ring-delay"></span>
+            <div class="auth-transition-mark">
+                <img src="{% static 'img/book.png' %}" alt="" class="auth-transition-logo">
+            </div>
+        </div>
+        <p class="auth-transition-label">Session</p>
+        <h2 class="auth-transition-title">Signing In</h2>
+        <p class="auth-transition-copy">Preparing your dashboard and verifying your account.</p>
+        <div class="auth-transition-dots" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'js/auth_switch.js' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const logoutName = sessionStorage.getItem('facultyLogoutName');
+    const alerts = document.querySelectorAll('.messages .alert-success');
+
+    if (logoutName && alerts.length) {
+        alerts.forEach(function(alert) {
+            alert.textContent = 'Thank you ' + logoutName + ', you are now logged out.';
+        });
+        sessionStorage.removeItem('facultyLogoutName');
+    }
+});
+
+document.querySelectorAll('.js-auth-login-form').forEach(function(form) {
+    form.addEventListener('submit', function(event) {
+        if (form.dataset.submitReady === 'true') {
+            return;
+        }
+
+        event.preventDefault();
+        form.dataset.submitReady = 'true';
+        document.body.classList.add('is-auth-transition');
+
+        var overlay = document.getElementById('facultyLoginOverlay');
+        if (overlay) {
+            overlay.classList.add('is-visible');
+            overlay.setAttribute('aria-hidden', 'false');
+        }
+
+        window.setTimeout(function() {
+            form.submit();
+        }, 450);
+    });
+});
+
+window.addEventListener('pageshow', function(event) {
+    const nav = performance.getEntriesByType('navigation');
+    const isBackForward = nav.length && nav[0].type === 'back_forward';
+    if (event.persisted || isBackForward) {
+        window.location.reload();
+    }
+});
+</script>
+
+</body>
+</html>
