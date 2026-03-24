@@ -2249,16 +2249,17 @@ body.theme-light .exam-nav-secondary:hover {
 
 body.theme-light {
     background:
-        linear-gradient(135deg, rgba(16, 22, 58, 0.82), rgba(18, 56, 119, 0.72)),
+        linear-gradient(135deg, rgba(246, 249, 255, 0.96), rgba(232, 239, 255, 0.88)),
         url("../img/bg.jpg") center/cover no-repeat fixed;
     color: #1f2947;
 }
 
 body.theme-light::before {
     background:
-        radial-gradient(circle at 18% 24%, rgba(125, 195, 255, 0.22), transparent 24%),
-        radial-gradient(circle at 82% 18%, rgba(107, 122, 255, 0.18), transparent 20%),
-        radial-gradient(circle at 76% 74%, rgba(100, 255, 197, 0.14), transparent 18%);
+        radial-gradient(circle at 18% 22%, rgba(255, 255, 255, 0.44), transparent 28%),
+        radial-gradient(circle at 82% 18%, rgba(186, 224, 255, 0.34), transparent 24%),
+        radial-gradient(circle at 76% 72%, rgba(196, 188, 255, 0.28), transparent 26%),
+        linear-gradient(135deg, rgba(246, 249, 255, 0.96), rgba(232, 239, 255, 0.84));
 }
 
 body.theme-light .student-header,
