@@ -1,0 +1,188 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2200" height="1400" viewBox="0 0 2200 1400" role="img" aria-labelledby="title desc">
+  <title id="title">RankRush Exam Portal Level 1 DFD</title>
+  <desc id="desc">High-resolution level-1 data flow diagram for the RankRush Exam Portal.</desc>
+  <defs>
+    <style>
+      .bg { fill: #f4f7fb; }
+      .panel { fill: #ffffff; stroke: #d6deea; stroke-width: 2; rx: 28; ry: 28; }
+      .title { font: 700 34px 'Segoe UI', Arial, sans-serif; fill: #172235; }
+      .subtitle { font: 500 16px 'Segoe UI', Arial, sans-serif; fill: #5b677c; }
+      .entity { fill: #eef2f7; stroke: #67758f; stroke-width: 2.2; rx: 16; ry: 16; }
+      .process { fill: #dff4e7; stroke: #2f7d57; stroke-width: 2.2; rx: 22; ry: 22; }
+      .store { fill: #fff7dc; stroke: #b88e1c; stroke-width: 2; }
+      .label { font: 700 20px 'Segoe UI', Arial, sans-serif; fill: #182338; }
+      .small { font: 500 15px 'Segoe UI', Arial, sans-serif; fill: #4f5b70; }
+      .tiny { font: 500 13px 'Segoe UI', Arial, sans-serif; fill: #4f5b70; }
+      .flow { stroke: #49566d; stroke-width: 2.4; fill: none; marker-end: url(#arrow); }
+      .flow-soft { stroke: #70809d; stroke-width: 1.9; fill: none; marker-end: url(#arrowSoft); }
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#49566d" />
+    </marker>
+    <marker id="arrowSoft" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#70809d" />
+    </marker>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="2200" height="1400" />
+  <rect class="panel" x="40" y="40" width="2120" height="1320" />
+
+  <text x="1100" y="100" text-anchor="middle" class="title">RankRush Exam Portal - Level-1 DFD</text>
+  <text x="1100" y="132" text-anchor="middle" class="subtitle">Main processes, grouped data stores, and major data exchanges</text>
+
+  <rect class="entity" x="90" y="260" width="250" height="90" />
+  <text x="215" y="298" text-anchor="middle" class="label">Student</text>
+  <text x="215" y="326" text-anchor="middle" class="small">candidate workflow</text>
+
+  <rect class="entity" x="90" y="1050" width="250" height="90" />
+  <text x="215" y="1088" text-anchor="middle" class="label">Email Service</text>
+  <text x="215" y="1116" text-anchor="middle" class="small">SMTP backend</text>
+
+  <rect class="entity" x="1860" y="260" width="250" height="90" />
+  <text x="1985" y="298" text-anchor="middle" class="label">Faculty</text>
+  <text x="1985" y="326" text-anchor="middle" class="small">professor workflow</text>
+
+  <rect class="entity" x="1860" y="1050" width="250" height="90" />
+  <text x="1985" y="1088" text-anchor="middle" class="label">Admin</text>
+  <text x="1985" y="1116" text-anchor="middle" class="small">system administration</text>
+
+  <rect class="process" x="420" y="230" width="280" height="110" />
+  <text x="560" y="270" text-anchor="middle" class="label">P1 Portal and</text>
+  <text x="560" y="296" text-anchor="middle" class="label">Authentication</text>
+  <text x="560" y="322" text-anchor="middle" class="tiny">student/faculty auth, validation, routing</text>
+
+  <rect class="process" x="960" y="230" width="280" height="110" />
+  <text x="1100" y="270" text-anchor="middle" class="label">P2 Profile, Preferences</text>
+  <text x="1100" y="296" text-anchor="middle" class="label">and Support</text>
+  <text x="1100" y="322" text-anchor="middle" class="tiny">password change, tickets, notifications</text>
+
+  <rect class="process" x="1500" y="230" width="280" height="110" />
+  <text x="1640" y="270" text-anchor="middle" class="label">P3 Question Bank and</text>
+  <text x="1640" y="296" text-anchor="middle" class="label">Exam Authoring</text>
+  <text x="1640" y="322" text-anchor="middle" class="tiny">questions, papers, schedules, media</text>
+
+  <rect class="process" x="420" y="610" width="280" height="110" />
+  <text x="560" y="650" text-anchor="middle" class="label">P4 Exam Delivery</text>
+  <text x="560" y="676" text-anchor="middle" class="label">and Submission</text>
+  <text x="560" y="702" text-anchor="middle" class="tiny">render exam, accept answers, score attempt</text>
+
+  <rect class="process" x="960" y="610" width="280" height="110" />
+  <text x="1100" y="650" text-anchor="middle" class="label">P5 Proctoring and</text>
+  <text x="1100" y="676" text-anchor="middle" class="label">Session Monitoring</text>
+  <text x="1100" y="702" text-anchor="middle" class="tiny">heartbeats, violations, live sessions</text>
+
+  <rect class="process" x="1500" y="610" width="280" height="110" />
+  <text x="1640" y="650" text-anchor="middle" class="label">P6 Results, Analytics</text>
+  <text x="1640" y="676" text-anchor="middle" class="label">and Review</text>
+  <text x="1640" y="702" text-anchor="middle" class="tiny">rankings, attempts, risk review</text>
+
+  <path class="store" d="M250 1130 h220 v80 h-220 m18 -80 v80" />
+  <text x="360" y="1165" text-anchor="middle" class="label">D1 Users and Roles</text>
+  <text x="360" y="1192" text-anchor="middle" class="tiny">auth user + groups</text>
+
+  <path class="store" d="M520 1130 h220 v80 h-220 m18 -80 v80" />
+  <text x="630" y="1165" text-anchor="middle" class="label">D2 Profiles and</text>
+  <text x="630" y="1192" text-anchor="middle" class="tiny">Preferences</text>
+
+  <path class="store" d="M790 1130 h220 v80 h-220 m18 -80 v80" />
+  <text x="900" y="1165" text-anchor="middle" class="label">D3 Support Tickets</text>
+  <text x="900" y="1192" text-anchor="middle" class="tiny">user support records</text>
+
+  <path class="store" d="M1060 1130 h220 v80 h-220 m18 -80 v80" />
+  <text x="1170" y="1165" text-anchor="middle" class="label">D4 Question Bank</text>
+  <text x="1170" y="1192" text-anchor="middle" class="tiny">Question_DB</text>
+
+  <path class="store" d="M1330 1130 h260 v80 h-260 m18 -80 v80" />
+  <text x="1460" y="1165" text-anchor="middle" class="label">D5 Papers and Exams</text>
+  <text x="1460" y="1192" text-anchor="middle" class="tiny">Question_Paper + Exam_Model</text>
+
+  <path class="store" d="M1640 1130 h260 v80 h-260 m18 -80 v80" />
+  <text x="1770" y="1165" text-anchor="middle" class="label">D6 Attempts and Results</text>
+  <text x="1770" y="1192" text-anchor="middle" class="tiny">StuExam_DB + StuResults_DB</text>
+
+  <path class="store" d="M860 1240 h260 v80 h-260 m18 -80 v80" />
+  <text x="990" y="1275" text-anchor="middle" class="label">D7 Active Sessions</text>
+  <text x="990" y="1302" text-anchor="middle" class="tiny">runtime session status</text>
+
+  <path class="store" d="M1170 1240 h260 v80 h-260 m18 -80 v80" />
+  <text x="1300" y="1275" text-anchor="middle" class="label">D8 Violation Logs</text>
+  <text x="1300" y="1302" text-anchor="middle" class="tiny">warning and risk events</text>
+
+  <path class="store" d="M1480 1240 h300 v80 h-300 m18 -80 v80" />
+  <text x="1630" y="1275" text-anchor="middle" class="label">D9 Media, Cache, and</text>
+  <text x="1630" y="1302" text-anchor="middle" class="tiny">Proctoring Settings</text>
+
+  <path class="flow" d="M340 285 H420" />
+  <text x="380" y="268" text-anchor="middle" class="tiny">signup, login</text>
+
+  <path class="flow" d="M340 315 H960" />
+  <text x="650" y="342" text-anchor="middle" class="tiny">profile updates, password requests, support input</text>
+
+  <path class="flow" d="M340 665 H420" />
+  <text x="380" y="648" text-anchor="middle" class="tiny">open exam, answers</text>
+
+  <path class="flow" d="M340 1110 V760 H960" />
+  <text x="650" y="1090" text-anchor="middle" class="tiny">heartbeat events and violation payloads</text>
+
+  <path class="flow" d="M1860 285 H1780" />
+  <text x="1820" y="268" text-anchor="middle" class="tiny">faculty login</text>
+
+  <path class="flow" d="M1860 315 H1780" />
+  <text x="1820" y="342" text-anchor="middle" class="tiny">authoring actions</text>
+
+  <path class="flow" d="M1860 665 H1780" />
+  <text x="1820" y="648" text-anchor="middle" class="tiny">review requests</text>
+
+  <path class="flow" d="M1860 1095 H1240" />
+  <text x="1550" y="1122" text-anchor="middle" class="tiny">configure monitoring and review support</text>
+
+  <path class="flow" d="M1860 1065 V285 H700" />
+  <text x="1280" y="262" text-anchor="middle" class="tiny">activate faculty and assign role</text>
+
+  <path class="flow" d="M340 1095 H420" />
+  <text x="380" y="1122" text-anchor="middle" class="tiny">mail delivery</text>
+
+  <path class="flow-soft" d="M700 285 H960" />
+  <text x="830" y="268" text-anchor="middle" class="tiny">authenticated user context</text>
+
+  <path class="flow-soft" d="M1240 285 H1500" />
+  <text x="1370" y="268" text-anchor="middle" class="tiny">faculty ownership and setup</text>
+
+  <path class="flow-soft" d="M700 665 H960" />
+  <text x="830" y="648" text-anchor="middle" class="tiny">session token and event stream</text>
+
+  <path class="flow-soft" d="M1240 665 H1500" />
+  <text x="1370" y="648" text-anchor="middle" class="tiny">risk events and session summaries</text>
+
+  <path class="flow" d="M560 340 V1130" />
+  <text x="576" y="1098" class="tiny">user data</text>
+
+  <path class="flow" d="M1100 340 V1130" />
+  <text x="1116" y="1098" class="tiny">preferences</text>
+
+  <path class="flow" d="M1020 340 V1130 H900" />
+  <text x="934" y="1098" class="tiny">tickets</text>
+
+  <path class="flow" d="M1640 340 V1130 H1170" />
+  <text x="1410" y="1098" text-anchor="middle" class="tiny">questions</text>
+
+  <path class="flow" d="M1720 340 V1130 H1460" />
+  <text x="1590" y="1098" text-anchor="middle" class="tiny">papers and exams</text>
+
+  <path class="flow" d="M560 720 V1130 H1770" />
+  <text x="1165" y="748" text-anchor="middle" class="tiny">submission scoring writes</text>
+
+  <path class="flow" d="M1100 720 V1240 H990" />
+  <text x="1024" y="1220" class="tiny">sessions</text>
+
+  <path class="flow" d="M1140 720 V1240 H1300" />
+  <text x="1240" y="1220" class="tiny">violations</text>
+
+  <path class="flow" d="M1600 340 V1240 H1630" />
+  <text x="1616" y="1220" class="tiny">media, cache, settings</text>
+
+  <path class="flow" d="M1640 720 V1130 H1770" />
+  <text x="1710" y="1098" class="tiny">attempt review</text>
+
+  <text x="1100" y="1360" text-anchor="middle" class="subtitle">Dedicated level-1 diagram with wider spacing to eliminate congestion and label overlap</text>
+</svg>

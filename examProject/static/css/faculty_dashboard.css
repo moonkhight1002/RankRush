@@ -8,6 +8,28 @@ body {
         url("../img/bg.jpg") center/cover no-repeat fixed;
 }
 
+body.theme-light .sidebar-heading {
+    color: rgba(27, 42, 74, 0.72) !important;
+}
+
+body.theme-light .eyebrow,
+body.theme-light .support-info-card p {
+    color: rgba(27, 42, 74, 0.88) !important;
+}
+
+body.theme-light .support-info-card h3 {
+    color: #22345c !important;
+}
+
+body.theme-light .saved-paper-title,
+body.theme-light .saved-paper-item strong {
+    color: #22345c !important;
+}
+
+body.theme-light .saved-paper-item span {
+    color: rgba(34, 52, 92, 0.84) !important;
+}
+
 body::before {
     content: "";
     position: fixed;

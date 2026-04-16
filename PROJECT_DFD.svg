@@ -1,0 +1,482 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2000" height="2620" viewBox="0 0 2000 2620" role="img" aria-labelledby="title desc">
+  <title id="title">RankRush Exam Portal DFD and ERD</title>
+  <desc id="desc">Clean pictorial representation of the RankRush Exam Portal with a context DFD, a level-1 DFD, and an ERD.</desc>
+  <defs>
+    <style>
+      .bg { fill: #f4f7fb; }
+      .panel { fill: #ffffff; stroke: #d6deea; stroke-width: 2; rx: 26; ry: 26; }
+      .subpanel { fill: #fbfcff; stroke: #e1e7f0; stroke-width: 1.5; rx: 18; ry: 18; }
+      .title { font: 700 34px 'Segoe UI', Arial, sans-serif; fill: #172235; }
+      .panel-title { font: 700 28px 'Segoe UI', Arial, sans-serif; fill: #172235; }
+      .subtitle { font: 500 15px 'Segoe UI', Arial, sans-serif; fill: #5c677c; }
+      .label { font: 700 18px 'Segoe UI', Arial, sans-serif; fill: #182338; }
+      .small { font: 500 14px 'Segoe UI', Arial, sans-serif; fill: #4f5b70; }
+      .tiny { font: 500 12px 'Segoe UI', Arial, sans-serif; fill: #4f5b70; }
+      .entity { fill: #eef2f7; stroke: #67758f; stroke-width: 2; rx: 14; ry: 14; }
+      .process { fill: #dff4e7; stroke: #2f7d57; stroke-width: 2.2; rx: 24; ry: 24; }
+      .store { fill: #fff7dc; stroke: #b88e1c; stroke-width: 2; }
+      .legend { fill: #f9fbff; stroke: #d6deea; stroke-width: 1.5; rx: 16; ry: 16; }
+      .flow { stroke: #49566d; stroke-width: 2.2; fill: none; marker-end: url(#arrow); }
+      .flow-soft { stroke: #70809d; stroke-width: 1.8; fill: none; marker-end: url(#arrowSoft); }
+      .erd-card { fill: #ffffff; stroke: #8a97af; stroke-width: 2; rx: 16; ry: 16; }
+      .erd-head-auth { fill: #deebff; }
+      .erd-head-core { fill: #dff4e7; }
+      .erd-head-exam { fill: #fff1c2; }
+      .erd-head-monitor { fill: #ffe6dd; }
+      .erd-head-pref { fill: #ece2ff; }
+      .erd-title { font: 700 18px 'Segoe UI', Arial, sans-serif; fill: #182338; }
+      .erd-field { font: 500 13px 'Consolas', 'Courier New', monospace; fill: #364259; }
+      .erd-line { stroke: #cfd6e3; stroke-width: 1.4; }
+      .rel { stroke: #536179; stroke-width: 2.1; fill: none; }
+      .rel-dash { stroke: #7b879d; stroke-width: 1.9; fill: none; stroke-dasharray: 7 6; }
+      .rel-label { font: 700 12px 'Segoe UI', Arial, sans-serif; fill: #44516a; }
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#49566d" />
+    </marker>
+    <marker id="arrowSoft" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#70809d" />
+    </marker>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="2000" height="2620" />
+
+  <text x="1000" y="58" text-anchor="middle" class="title">RankRush Exam Portal</text>
+  <text x="1000" y="88" text-anchor="middle" class="subtitle">Clean pictorial view of the project-wide DFD and ERD</text>
+
+  <rect class="panel" x="40" y="120" width="1920" height="350" />
+  <text x="70" y="160" class="panel-title">Context DFD</text>
+  <text x="70" y="185" class="subtitle">External actors and the overall system boundary</text>
+
+  <rect class="entity" x="120" y="235" width="220" height="86" />
+  <text x="230" y="268" text-anchor="middle" class="label">Student</text>
+  <text x="230" y="292" text-anchor="middle" class="small">registers, logs in, takes exams</text>
+
+  <rect class="entity" x="120" y="350" width="220" height="86" />
+  <text x="230" y="383" text-anchor="middle" class="label">Email Service</text>
+  <text x="230" y="407" text-anchor="middle" class="small">activation and alert delivery</text>
+
+  <ellipse class="process" cx="1000" cy="320" rx="270" ry="90" />
+  <text x="1000" y="306" text-anchor="middle" class="label">RankRush Exam Portal</text>
+  <text x="1000" y="333" text-anchor="middle" class="small">Django web application for students, faculty, and admin</text>
+
+  <rect class="entity" x="1660" y="235" width="220" height="86" />
+  <text x="1770" y="268" text-anchor="middle" class="label">Faculty</text>
+  <text x="1770" y="292" text-anchor="middle" class="small">creates exams and reviews attempts</text>
+
+  <rect class="entity" x="1660" y="350" width="220" height="86" />
+  <text x="1770" y="383" text-anchor="middle" class="label">Admin</text>
+  <text x="1770" y="407" text-anchor="middle" class="small">approves faculty and tunes settings</text>
+
+  <path class="flow" d="M340 278 H730" />
+  <text x="535" y="262" text-anchor="middle" class="tiny">registration, login, exam requests, support</text>
+  <path class="flow" d="M730 352 H340" />
+  <text x="535" y="372" text-anchor="middle" class="tiny">dashboards, results, exam pages, feedback</text>
+
+  <path class="flow" d="M1270 278 H1660" />
+  <text x="1465" y="262" text-anchor="middle" class="tiny">authoring, monitoring, review actions</text>
+  <path class="flow" d="M1660 352 H1270" />
+  <text x="1465" y="372" text-anchor="middle" class="tiny">faculty dashboards, attempts, violations</text>
+
+  <path class="flow" d="M1270 392 H1660" />
+  <text x="1465" y="416" text-anchor="middle" class="tiny">admin panels, support records, proctor settings</text>
+  <path class="flow" d="M1660 246 H1270" />
+  <text x="1465" y="232" text-anchor="middle" class="tiny">activation, role assignment, configuration</text>
+
+  <path class="flow" d="M730 394 H340" />
+  <text x="535" y="418" text-anchor="middle" class="tiny">activation email, login alerts, cheat notifications</text>
+
+  <rect class="panel" x="40" y="500" width="1920" height="970" />
+  <text x="70" y="540" class="panel-title">Level-1 DFD</text>
+  <text x="70" y="565" class="subtitle">Main processes, data stores, and major data exchanges across the project</text>
+
+  <rect class="legend" x="1480" y="525" width="430" height="116" />
+  <text x="1510" y="556" class="label">Legend</text>
+  <rect class="entity" x="1510" y="575" width="88" height="28" />
+  <text x="1612" y="594" class="small">External entity</text>
+  <rect class="process" x="1710" y="575" width="92" height="28" />
+  <text x="1816" y="594" class="small">Process</text>
+  <path class="store" d="M1510 615 h88 v26 h-88 m14 -26 v26" />
+  <text x="1612" y="633" class="small">Data store</text>
+
+  <rect class="entity" x="90" y="710" width="220" height="82" />
+  <text x="200" y="744" text-anchor="middle" class="label">Student</text>
+  <text x="200" y="768" text-anchor="middle" class="small">candidate workflow</text>
+
+  <rect class="entity" x="90" y="1180" width="220" height="82" />
+  <text x="200" y="1214" text-anchor="middle" class="label">Email Service</text>
+  <text x="200" y="1238" text-anchor="middle" class="small">SMTP backend</text>
+
+  <rect class="entity" x="1690" y="710" width="220" height="82" />
+  <text x="1800" y="744" text-anchor="middle" class="label">Faculty</text>
+  <text x="1800" y="768" text-anchor="middle" class="small">professor workflow</text>
+
+  <rect class="entity" x="1690" y="1180" width="220" height="82" />
+  <text x="1800" y="1214" text-anchor="middle" class="label">Admin</text>
+  <text x="1800" y="1238" text-anchor="middle" class="small">system administration</text>
+
+  <rect class="process" x="430" y="700" width="260" height="104" />
+  <text x="560" y="735" text-anchor="middle" class="label">P1 Portal and</text>
+  <text x="560" y="760" text-anchor="middle" class="label">Authentication</text>
+  <text x="560" y="785" text-anchor="middle" class="tiny">student/faculty auth, validation, routing</text>
+
+  <rect class="process" x="870" y="700" width="260" height="104" />
+  <text x="1000" y="735" text-anchor="middle" class="label">P2 Profile, Preferences</text>
+  <text x="1000" y="760" text-anchor="middle" class="label">and Support</text>
+  <text x="1000" y="785" text-anchor="middle" class="tiny">password change, tickets, login notifications</text>
+
+  <rect class="process" x="1310" y="700" width="260" height="104" />
+  <text x="1440" y="735" text-anchor="middle" class="label">P3 Question Bank and</text>
+  <text x="1440" y="760" text-anchor="middle" class="label">Exam Authoring</text>
+  <text x="1440" y="785" text-anchor="middle" class="tiny">questions, papers, schedules, media uploads</text>
+
+  <rect class="process" x="430" y="980" width="260" height="104" />
+  <text x="560" y="1015" text-anchor="middle" class="label">P4 Exam Delivery</text>
+  <text x="560" y="1040" text-anchor="middle" class="label">and Submission</text>
+  <text x="560" y="1065" text-anchor="middle" class="tiny">render exam, accept answers, score attempt</text>
+
+  <rect class="process" x="870" y="980" width="260" height="104" />
+  <text x="1000" y="1015" text-anchor="middle" class="label">P5 Proctoring and</text>
+  <text x="1000" y="1040" text-anchor="middle" class="label">Session Monitoring</text>
+  <text x="1000" y="1065" text-anchor="middle" class="tiny">heartbeats, violations, live sessions</text>
+
+  <rect class="process" x="1310" y="980" width="260" height="104" />
+  <text x="1440" y="1015" text-anchor="middle" class="label">P6 Results, Analytics</text>
+  <text x="1440" y="1040" text-anchor="middle" class="label">and Review</text>
+  <text x="1440" y="1065" text-anchor="middle" class="tiny">rankings, attempt review, risk view</text>
+
+  <path class="store" d="M220 1265 h210 v70 h-210 m16 -70 v70" />
+  <text x="325" y="1295" text-anchor="middle" class="label">D1 Users and Roles</text>
+  <text x="325" y="1318" text-anchor="middle" class="tiny">auth user + groups</text>
+
+  <path class="store" d="M460 1265 h210 v70 h-210 m16 -70 v70" />
+  <text x="565" y="1295" text-anchor="middle" class="label">D2 Profiles and</text>
+  <text x="565" y="1318" text-anchor="middle" class="tiny">Preferences</text>
+
+  <path class="store" d="M700 1265 h210 v70 h-210 m16 -70 v70" />
+  <text x="805" y="1295" text-anchor="middle" class="label">D3 Support</text>
+  <text x="805" y="1318" text-anchor="middle" class="tiny">Tickets</text>
+
+  <path class="store" d="M940 1265 h210 v70 h-210 m16 -70 v70" />
+  <text x="1045" y="1295" text-anchor="middle" class="label">D4 Question Bank</text>
+  <text x="1045" y="1318" text-anchor="middle" class="tiny">Question_DB</text>
+
+  <path class="store" d="M1180 1265 h210 v70 h-210 m16 -70 v70" />
+  <text x="1285" y="1295" text-anchor="middle" class="label">D5 Papers and</text>
+  <text x="1285" y="1318" text-anchor="middle" class="tiny">Scheduled Exams</text>
+
+  <path class="store" d="M1420 1265 h210 v70 h-210 m16 -70 v70" />
+  <text x="1525" y="1295" text-anchor="middle" class="label">D6 Attempts and</text>
+  <text x="1525" y="1318" text-anchor="middle" class="tiny">Results</text>
+
+  <path class="store" d="M700 1370 h250 v70 h-250 m16 -70 v70" />
+  <text x="825" y="1400" text-anchor="middle" class="label">D7 Active Sessions</text>
+  <text x="825" y="1423" text-anchor="middle" class="tiny">runtime status</text>
+
+  <path class="store" d="M980 1370 h250 v70 h-250 m16 -70 v70" />
+  <text x="1105" y="1400" text-anchor="middle" class="label">D8 Violation Logs</text>
+  <text x="1105" y="1423" text-anchor="middle" class="tiny">warning and risk events</text>
+
+  <path class="store" d="M1260 1370 h320 v70 h-320 m16 -70 v70" />
+  <text x="1420" y="1400" text-anchor="middle" class="label">D9 Media, Cache, and</text>
+  <text x="1420" y="1423" text-anchor="middle" class="tiny">Proctoring Settings</text>
+
+  <path class="flow" d="M310 738 H430" />
+  <text x="370" y="724" text-anchor="middle" class="tiny">signup, login</text>
+  <path class="flow" d="M310 786 H870" />
+  <text x="590" y="812" text-anchor="middle" class="tiny">profile, password, support input</text>
+  <path class="flow" d="M310 1030 H430" />
+  <text x="370" y="1016" text-anchor="middle" class="tiny">open exam, answers</text>
+  <path class="flow" d="M310 1160 V1032 H870" />
+  <text x="540" y="1150" text-anchor="middle" class="tiny">heartbeat and violation events</text>
+
+  <path class="flow" d="M1690 738 H1570" />
+  <text x="1630" y="724" text-anchor="middle" class="tiny">faculty login</text>
+  <path class="flow" d="M1690 786 H1570" />
+  <text x="1630" y="812" text-anchor="middle" class="tiny">authoring actions</text>
+  <path class="flow" d="M1690 1032 H1570" />
+  <text x="1630" y="1016" text-anchor="middle" class="tiny">review requests</text>
+
+  <path class="flow" d="M1690 1221 H1130" />
+  <text x="1410" y="1245" text-anchor="middle" class="tiny">configure monitoring and review support</text>
+  <path class="flow" d="M1690 1188 V752 H690" />
+  <text x="1415" y="730" text-anchor="middle" class="tiny">activate faculty and assign role</text>
+
+  <path class="flow" d="M310 1221 H430" />
+  <text x="370" y="1246" text-anchor="middle" class="tiny">outbound mail delivery</text>
+
+  <path class="flow-soft" d="M690 752 H870" />
+  <text x="780" y="736" text-anchor="middle" class="tiny">authenticated user context</text>
+  <path class="flow-soft" d="M1130 752 H1310" />
+  <text x="1220" y="736" text-anchor="middle" class="tiny">faculty ownership and setup</text>
+  <path class="flow-soft" d="M1570 1032 H1310" />
+  <text x="1440" y="1110" text-anchor="middle" class="tiny">scored attempts and review data</text>
+  <path class="flow-soft" d="M1130 1032 H1310" />
+  <text x="1220" y="1016" text-anchor="middle" class="tiny">risk events and session summaries</text>
+
+  <path class="flow" d="M560 804 V1265" />
+  <text x="575" y="1238" class="tiny">users</text>
+  <path class="flow" d="M1000 804 V1265" />
+  <text x="1015" y="1238" class="tiny">preferences</text>
+  <path class="flow" d="M930 804 V1265" />
+  <text x="875" y="1238" class="tiny">tickets</text>
+
+  <path class="flow" d="M1440 804 V1265" />
+  <text x="1455" y="1238" class="tiny">questions and exams</text>
+  <path class="flow" d="M1525 1084 V1265" />
+  <text x="1540" y="1238" class="tiny">attempts</text>
+  <path class="flow" d="M560 1084 V1265" />
+  <text x="575" y="1238" class="tiny">auth lookups</text>
+
+  <path class="flow" d="M1000 1084 V1370" />
+  <text x="1016" y="1356" class="tiny">logs</text>
+  <path class="flow" d="M920 1084 V1370 H825" />
+  <text x="862" y="1356" class="tiny">sessions</text>
+  <path class="flow" d="M1440 804 V1370 H1420" />
+  <text x="1456" y="1356" class="tiny">media</text>
+  <path class="flow" d="M560 1084 V1265 H1525" />
+  <text x="980" y="1122" text-anchor="middle" class="tiny">submission scoring writes</text>
+
+  <text x="1000" y="1450" text-anchor="middle" class="subtitle">The level-1 DFD groups related stores to keep the picture readable and non-overlapping</text>
+
+  <rect class="panel" x="40" y="1510" width="1920" height="1060" />
+  <text x="70" y="1550" class="panel-title">Entity Relationship Diagram</text>
+  <text x="70" y="1575" class="subtitle">Principal models and their main relationships across identity, exam authoring, attempts, and monitoring</text>
+
+  <rect class="legend" x="1540" y="1540" width="360" height="104" />
+  <text x="1570" y="1570" class="label">Legend</text>
+  <text x="1570" y="1600" class="rel-label">1</text>
+  <line class="rel" x1="1585" y1="1594" x2="1660" y2="1594" />
+  <text x="1672" y="1600" class="rel-label">M</text>
+  <text x="1702" y="1600" class="small">one-to-many</text>
+  <text x="1570" y="1628" class="rel-label">M</text>
+  <line class="rel" x1="1585" y1="1622" x2="1660" y2="1622" />
+  <text x="1672" y="1628" class="rel-label">N</text>
+  <text x="1702" y="1628" class="small">many-to-many</text>
+
+  <rect class="subpanel" x="70" y="1600" width="560" height="900" />
+  <text x="100" y="1630" class="label">Identity and Support</text>
+
+  <rect class="erd-card" x="100" y="1670" width="260" height="122" />
+  <rect class="erd-head-auth" x="100" y="1670" width="260" height="34" />
+  <text x="230" y="1693" text-anchor="middle" class="erd-title">auth_user</text>
+  <line class="erd-line" x1="100" y1="1704" x2="360" y2="1704" />
+  <text x="118" y="1728" class="erd-field">PK id</text>
+  <text x="118" y="1750" class="erd-field">username, email</text>
+  <text x="118" y="1772" class="erd-field">password, is_active</text>
+
+  <rect class="erd-card" x="100" y="1825" width="260" height="96" />
+  <rect class="erd-head-auth" x="100" y="1825" width="260" height="34" />
+  <text x="230" y="1848" text-anchor="middle" class="erd-title">auth_group</text>
+  <line class="erd-line" x1="100" y1="1859" x2="360" y2="1859" />
+  <text x="118" y="1883" class="erd-field">PK id</text>
+  <text x="118" y="1905" class="erd-field">name</text>
+
+  <rect class="erd-card" x="100" y="1970" width="240" height="114" />
+  <rect class="erd-head-core" x="100" y="1970" width="240" height="34" />
+  <text x="220" y="1993" text-anchor="middle" class="erd-title">StudentInfo</text>
+  <line class="erd-line" x1="100" y1="2004" x2="340" y2="2004" />
+  <text x="118" y="2028" class="erd-field">PK id</text>
+  <text x="118" y="2050" class="erd-field">FK user_id unique</text>
+  <text x="118" y="2072" class="erd-field">address, stream, picture</text>
+
+  <rect class="erd-card" x="370" y="1970" width="230" height="114" />
+  <rect class="erd-head-core" x="370" y="1970" width="230" height="34" />
+  <text x="485" y="1993" text-anchor="middle" class="erd-title">FacultyInfo</text>
+  <line class="erd-line" x1="370" y1="2004" x2="600" y2="2004" />
+  <text x="388" y="2028" class="erd-field">PK id</text>
+  <text x="388" y="2050" class="erd-field">FK user_id unique</text>
+  <text x="388" y="2072" class="erd-field">address, subject, picture</text>
+
+  <rect class="erd-card" x="100" y="2125" width="240" height="114" />
+  <rect class="erd-head-pref" x="100" y="2125" width="240" height="34" />
+  <text x="220" y="2148" text-anchor="middle" class="erd-title">StudentPreferenceModel</text>
+  <line class="erd-line" x1="100" y1="2159" x2="340" y2="2159" />
+  <text x="118" y="2183" class="erd-field">PK id</text>
+  <text x="118" y="2205" class="erd-field">FK user_id unique</text>
+  <text x="118" y="2227" class="erd-field">sendEmailOnLogin</text>
+
+  <rect class="erd-card" x="370" y="2125" width="230" height="140" />
+  <rect class="erd-head-pref" x="370" y="2125" width="230" height="34" />
+  <text x="485" y="2148" text-anchor="middle" class="erd-title">SupportTicket</text>
+  <line class="erd-line" x1="370" y1="2159" x2="600" y2="2159" />
+  <text x="388" y="2183" class="erd-field">PK id</text>
+  <text x="388" y="2205" class="erd-field">FK user_id</text>
+  <text x="388" y="2227" class="erd-field">role, ticket_type</text>
+  <text x="388" y="2249" class="erd-field">subject, message</text>
+
+  <path class="rel" d="M230 1792 V1825" />
+  <text x="214" y="1814" class="rel-label">M</text>
+  <text x="242" y="1814" class="rel-label">N</text>
+  <text x="290" y="1814" class="tiny">via Django auth membership tables</text>
+
+  <path class="rel" d="M220 1792 V1970" />
+  <text x="206" y="1898" class="rel-label">1</text>
+  <text x="228" y="1958" class="rel-label">1</text>
+
+  <path class="rel" d="M360 1732 H430 V1970" />
+  <text x="376" y="1724" class="rel-label">1</text>
+  <text x="438" y="1958" class="rel-label">1</text>
+
+  <path class="rel" d="M150 1792 V2125" />
+  <text x="136" y="1964" class="rel-label">1</text>
+  <text x="158" y="2113" class="rel-label">1</text>
+
+  <path class="rel" d="M360 1762 H420 V2125" />
+  <text x="376" y="1754" class="rel-label">1</text>
+  <text x="428" y="2113" class="rel-label">M</text>
+
+  <rect class="subpanel" x="670" y="1600" width="1260" height="900" />
+  <text x="700" y="1630" class="label">Exams, Attempts, and Monitoring</text>
+
+  <rect class="erd-card" x="710" y="1670" width="285" height="150" />
+  <rect class="erd-head-exam" x="710" y="1670" width="285" height="34" />
+  <text x="852" y="1693" text-anchor="middle" class="erd-title">Question_DB</text>
+  <line class="erd-line" x1="710" y1="1704" x2="995" y2="1704" />
+  <text x="728" y="1728" class="erd-field">PK qno</text>
+  <text x="728" y="1750" class="erd-field">FK professor_id -&gt; auth_user</text>
+  <text x="728" y="1772" class="erd-field">question, question_image</text>
+  <text x="728" y="1794" class="erd-field">optionA..D, answer, max_marks</text>
+
+  <rect class="erd-card" x="1045" y="1670" width="275" height="120" />
+  <rect class="erd-head-exam" x="1045" y="1670" width="275" height="34" />
+  <text x="1182" y="1693" text-anchor="middle" class="erd-title">Question_Paper</text>
+  <line class="erd-line" x1="1045" y1="1704" x2="1320" y2="1704" />
+  <text x="1063" y="1728" class="erd-field">PK id</text>
+  <text x="1063" y="1750" class="erd-field">FK professor_id -&gt; auth_user</text>
+  <text x="1063" y="1772" class="erd-field">qPaperTitle</text>
+
+  <rect class="erd-card" x="1370" y="1670" width="300" height="138" />
+  <rect class="erd-head-exam" x="1370" y="1670" width="300" height="34" />
+  <text x="1520" y="1693" text-anchor="middle" class="erd-title">Exam_Model</text>
+  <line class="erd-line" x1="1370" y1="1704" x2="1670" y2="1704" />
+  <text x="1388" y="1728" class="erd-field">PK id</text>
+  <text x="1388" y="1750" class="erd-field">FK professor_id -&gt; auth_user</text>
+  <text x="1388" y="1772" class="erd-field">FK question_paper_id</text>
+  <text x="1388" y="1794" class="erd-field">name, total_marks, start/end time</text>
+
+  <rect class="erd-card" x="710" y="1935" width="285" height="150" />
+  <rect class="erd-head-core" x="710" y="1935" width="285" height="34" />
+  <text x="852" y="1958" text-anchor="middle" class="erd-title">Stu_Question</text>
+  <line class="erd-line" x1="710" y1="1969" x2="995" y2="1969" />
+  <text x="728" y="1993" class="erd-field">PK qno</text>
+  <text x="728" y="2015" class="erd-field">FK student_id -&gt; auth_user</text>
+  <text x="728" y="2037" class="erd-field">question snapshot + options</text>
+  <text x="728" y="2059" class="erd-field">answer, choice, max_marks</text>
+
+  <rect class="erd-card" x="1045" y="1935" width="275" height="128" />
+  <rect class="erd-head-core" x="1045" y="1935" width="275" height="34" />
+  <text x="1182" y="1958" text-anchor="middle" class="erd-title">StuExam_DB</text>
+  <line class="erd-line" x1="1045" y1="1969" x2="1320" y2="1969" />
+  <text x="1063" y="1993" class="erd-field">PK id</text>
+  <text x="1063" y="2015" class="erd-field">FK student_id -&gt; auth_user</text>
+  <text x="1063" y="2037" class="erd-field">FK qpaper_id</text>
+  <text x="1063" y="2059" class="erd-field">examname, score, completed</text>
+
+  <rect class="erd-card" x="1370" y="1935" width="300" height="102" />
+  <rect class="erd-head-core" x="1370" y="1935" width="300" height="34" />
+  <text x="1520" y="1958" text-anchor="middle" class="erd-title">StuResults_DB</text>
+  <line class="erd-line" x1="1370" y1="1969" x2="1670" y2="1969" />
+  <text x="1388" y="1993" class="erd-field">PK id</text>
+  <text x="1388" y="2015" class="erd-field">FK student_id -&gt; auth_user</text>
+
+  <rect class="erd-card" x="710" y="2205" width="300" height="160" />
+  <rect class="erd-head-monitor" x="710" y="2205" width="300" height="34" />
+  <text x="860" y="2228" text-anchor="middle" class="erd-title">ExamViolationLog</text>
+  <line class="erd-line" x1="710" y1="2239" x2="1010" y2="2239" />
+  <text x="728" y="2263" class="erd-field">PK id</text>
+  <text x="728" y="2285" class="erd-field">FK student_id -&gt; auth_user</text>
+  <text x="728" y="2307" class="erd-field">FK professor_id -&gt; auth_user</text>
+  <text x="728" y="2329" class="erd-field">FK qpaper_id</text>
+
+  <rect class="erd-card" x="1045" y="2205" width="300" height="168" />
+  <rect class="erd-head-monitor" x="1045" y="2205" width="300" height="34" />
+  <text x="1195" y="2228" text-anchor="middle" class="erd-title">ActiveExamSession</text>
+  <line class="erd-line" x1="1045" y1="2239" x2="1345" y2="2239" />
+  <text x="1063" y="2263" class="erd-field">PK id</text>
+  <text x="1063" y="2285" class="erd-field">FK student_id -&gt; auth_user</text>
+  <text x="1063" y="2307" class="erd-field">FK professor_id -&gt; auth_user</text>
+  <text x="1063" y="2329" class="erd-field">FK qpaper_id</text>
+  <text x="1063" y="2351" class="erd-field">session_token, status</text>
+
+  <rect class="erd-card" x="1370" y="2205" width="300" height="124" />
+  <rect class="erd-head-monitor" x="1370" y="2205" width="300" height="34" />
+  <text x="1520" y="2228" text-anchor="middle" class="erd-title">ProctoringSettings</text>
+  <line class="erd-line" x1="1370" y1="2239" x2="1670" y2="2239" />
+  <text x="1388" y="2263" class="erd-field">PK id = 1</text>
+  <text x="1388" y="2285" class="erd-field">threshold and timing fields</text>
+  <text x="1388" y="2307" class="erd-field">range summary values</text>
+
+  <path class="rel" d="M995 1726 H1045" />
+  <text x="1006" y="1718" class="rel-label">M</text>
+  <text x="1031" y="1718" class="rel-label">N</text>
+
+  <path class="rel" d="M1320 1738 H1370" />
+  <text x="1330" y="1730" class="rel-label">1</text>
+  <text x="1356" y="1730" class="rel-label">M</text>
+
+  <path class="rel" d="M1182 1790 V1935" />
+  <text x="1168" y="1870" class="rel-label">1</text>
+  <text x="1190" y="1924" class="rel-label">M</text>
+
+  <path class="rel" d="M995 2000 H1045" />
+  <text x="1006" y="1992" class="rel-label">M</text>
+  <text x="1031" y="1992" class="rel-label">N</text>
+
+  <path class="rel" d="M1320 1986 H1370" />
+  <text x="1330" y="1978" class="rel-label">M</text>
+  <text x="1356" y="1978" class="rel-label">N</text>
+
+  <path class="rel" d="M1182 1790 V2205" />
+  <text x="1168" y="2008" class="rel-label">1</text>
+  <text x="1190" y="2194" class="rel-label">M</text>
+
+  <path class="rel" d="M1520 1808 V2205 H1345" />
+  <text x="1506" y="1900" class="rel-label">1</text>
+  <text x="1356" y="2194" class="rel-label">M</text>
+
+  <path class="rel-dash" d="M1520 2329 V2388 H1195" />
+  <text x="1338" y="2406" text-anchor="middle" class="tiny">runtime configuration, application-level usage</text>
+
+  <path class="rel" d="M630 1708 H710" />
+  <text x="646" y="1700" class="rel-label">1</text>
+  <text x="694" y="1700" class="rel-label">M</text>
+  <text x="640" y="1684" class="tiny">faculty owns questions</text>
+
+  <path class="rel" d="M630 1740 H1045" />
+  <text x="646" y="1732" class="rel-label">1</text>
+  <text x="1026" y="1732" class="rel-label">M</text>
+  <text x="760" y="1758" class="tiny">faculty owns question papers</text>
+
+  <path class="rel" d="M630 1772 H1370" />
+  <text x="646" y="1764" class="rel-label">1</text>
+  <text x="1352" y="1764" class="rel-label">M</text>
+  <text x="900" y="1790" class="tiny">faculty schedules exams</text>
+
+  <path class="rel" d="M630 2020 H710" />
+  <text x="646" y="2012" class="rel-label">1</text>
+  <text x="694" y="2012" class="rel-label">M</text>
+  <text x="640" y="2042" class="tiny">student answered snapshots</text>
+
+  <path class="rel" d="M630 2052 H1045" />
+  <text x="646" y="2044" class="rel-label">1</text>
+  <text x="1026" y="2044" class="rel-label">M</text>
+  <text x="810" y="2070" class="tiny">student exam attempts</text>
+
+  <path class="rel" d="M630 2084 H1370" />
+  <text x="646" y="2076" class="rel-label">1</text>
+  <text x="1352" y="2076" class="rel-label">1</text>
+  <text x="985" y="2102" class="tiny">app-level one result container per student</text>
+
+  <path class="rel" d="M630 2260 H710" />
+  <text x="646" y="2252" class="rel-label">1</text>
+  <text x="694" y="2252" class="rel-label">M</text>
+  <text x="638" y="2282" class="tiny">student and professor references</text>
+
+  <path class="rel" d="M630 2298 H1045" />
+  <text x="646" y="2290" class="rel-label">1</text>
+  <text x="1026" y="2290" class="rel-label">M</text>
+  <text x="820" y="2320" class="tiny">live exam sessions</text>
+
+  <text x="1000" y="2530" text-anchor="middle" class="subtitle">The ERD keeps only principal models visible and abstracts Django join tables to keep the picture clear</text>
+</svg>

@@ -1,0 +1,176 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2400" height="1800" viewBox="0 0 2400 1800" role="img" aria-labelledby="title desc">
+  <title id="title">RankRush Exam Portal Functional Decomposition Diagram</title>
+  <desc id="desc">Clean high-resolution functional decomposition diagram for the RankRush Exam Portal showing the hierarchy of major system functions without overlapping text boxes.</desc>
+  <defs>
+    <style>
+      .bg { fill: #f4f7fb; }
+      .panel { fill: #ffffff; stroke: #d6deea; stroke-width: 2; rx: 28; ry: 28; }
+      .group { fill: #fbfcff; stroke: #e1e7f0; stroke-width: 1.5; rx: 20; ry: 20; }
+      .title { font: 700 34px 'Segoe UI', Arial, sans-serif; fill: #172235; }
+      .subtitle { font: 500 16px 'Segoe UI', Arial, sans-serif; fill: #5b677c; }
+      .root { fill: #dff4e7; stroke: #2f7d57; stroke-width: 2.6; rx: 26; ry: 26; }
+      .level1 { fill: #e8f0ff; stroke: #5f78a6; stroke-width: 2.2; rx: 20; ry: 20; }
+      .level2 { fill: #fff7dc; stroke: #b88e1c; stroke-width: 2; rx: 16; ry: 16; }
+      .label { font: 700 21px 'Segoe UI', Arial, sans-serif; fill: #182338; }
+      .small { font: 600 16px 'Segoe UI', Arial, sans-serif; fill: #364259; }
+      .tiny { font: 500 14px 'Segoe UI', Arial, sans-serif; fill: #4f5b70; }
+      .link { stroke: #6a778f; stroke-width: 2.4; fill: none; }
+    </style>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="2400" height="1800" />
+  <rect class="panel" x="40" y="40" width="2320" height="1720" />
+
+  <text x="1200" y="98" text-anchor="middle" class="title">RankRush Exam Portal - Functional Decomposition Diagram</text>
+  <text x="1200" y="130" text-anchor="middle" class="subtitle">Clean hierarchical breakdown of the system functions with separated columns and non-overlapping text boxes</text>
+
+  <rect class="root" x="915" y="180" width="570" height="96" />
+  <text x="1200" y="220" text-anchor="middle" class="label">RankRush Exam Portal</text>
+  <text x="1200" y="250" text-anchor="middle" class="tiny">online examination, monitoring, and result management system</text>
+
+  <line class="link" x1="1200" y1="276" x2="1200" y2="330" />
+  <line class="link" x1="260" y1="330" x2="2140" y2="330" />
+  <line class="link" x1="260" y1="330" x2="260" y2="370" />
+  <line class="link" x1="730" y1="330" x2="730" y2="370" />
+  <line class="link" x1="1200" y1="330" x2="1200" y2="370" />
+  <line class="link" x1="1670" y1="330" x2="1670" y2="370" />
+  <line class="link" x1="2140" y1="330" x2="2140" y2="370" />
+
+  <rect class="group" x="70" y="360" width="380" height="1320" />
+  <rect class="group" x="540" y="360" width="380" height="1320" />
+  <rect class="group" x="1010" y="360" width="380" height="1320" />
+  <rect class="group" x="1480" y="360" width="380" height="1320" />
+  <rect class="group" x="1950" y="360" width="380" height="1320" />
+
+  <rect class="level1" x="100" y="390" width="320" height="96" />
+  <text x="260" y="430" text-anchor="middle" class="label">1. User and Access</text>
+  <text x="260" y="460" text-anchor="middle" class="tiny">identity, registration, login, routing</text>
+
+  <line class="link" x1="260" y1="486" x2="260" y2="530" />
+  <line class="link" x1="260" y1="530" x2="260" y2="560" />
+
+  <rect class="level2" x="130" y="560" width="260" height="92" />
+  <text x="260" y="598" text-anchor="middle" class="small">Student Registration</text>
+  <text x="260" y="624" text-anchor="middle" class="tiny">create account and activation flow</text>
+
+  <line class="link" x1="260" y1="652" x2="260" y2="692" />
+  <rect class="level2" x="130" y="692" width="260" height="92" />
+  <text x="260" y="730" text-anchor="middle" class="small">Student Login / Logout</text>
+  <text x="260" y="756" text-anchor="middle" class="tiny">authenticate and enter portal</text>
+
+  <line class="link" x1="260" y1="784" x2="260" y2="824" />
+  <rect class="level2" x="130" y="824" width="260" height="92" />
+  <text x="260" y="862" text-anchor="middle" class="small">Faculty Registration / Login</text>
+  <text x="260" y="888" text-anchor="middle" class="tiny">register, approval, role-based access</text>
+
+  <rect class="level1" x="570" y="390" width="320" height="96" />
+  <text x="730" y="430" text-anchor="middle" class="label">2. Profile and Support</text>
+  <text x="730" y="460" text-anchor="middle" class="tiny">preferences, password, account assistance</text>
+
+  <line class="link" x1="730" y1="486" x2="730" y2="530" />
+  <line class="link" x1="730" y1="530" x2="730" y2="560" />
+
+  <rect class="level2" x="600" y="560" width="260" height="92" />
+  <text x="730" y="598" text-anchor="middle" class="small">Profile Management</text>
+  <text x="730" y="624" text-anchor="middle" class="tiny">student and faculty details</text>
+
+  <line class="link" x1="730" y1="652" x2="730" y2="692" />
+  <rect class="level2" x="600" y="692" width="260" height="92" />
+  <text x="730" y="730" text-anchor="middle" class="small">Preference Settings</text>
+  <text x="730" y="756" text-anchor="middle" class="tiny">login email notification control</text>
+
+  <line class="link" x1="730" y1="784" x2="730" y2="824" />
+  <rect class="level2" x="600" y="824" width="260" height="92" />
+  <text x="730" y="862" text-anchor="middle" class="small">Password and Support</text>
+  <text x="730" y="888" text-anchor="middle" class="tiny">password change and support tickets</text>
+
+  <rect class="level1" x="1040" y="390" width="320" height="96" />
+  <text x="1200" y="430" text-anchor="middle" class="label">3. Exam Authoring</text>
+  <text x="1200" y="460" text-anchor="middle" class="tiny">question creation, paper building, scheduling</text>
+
+  <line class="link" x1="1200" y1="486" x2="1200" y2="530" />
+  <line class="link" x1="1200" y1="530" x2="1200" y2="560" />
+
+  <rect class="level2" x="1070" y="560" width="260" height="92" />
+  <text x="1200" y="598" text-anchor="middle" class="small">Question Bank</text>
+  <text x="1200" y="624" text-anchor="middle" class="tiny">create and maintain questions</text>
+
+  <line class="link" x1="1200" y1="652" x2="1200" y2="692" />
+  <rect class="level2" x="1070" y="692" width="260" height="92" />
+  <text x="1200" y="730" text-anchor="middle" class="small">Question Paper Builder</text>
+  <text x="1200" y="756" text-anchor="middle" class="tiny">assemble papers from saved questions</text>
+
+  <line class="link" x1="1200" y1="784" x2="1200" y2="824" />
+  <rect class="level2" x="1070" y="824" width="260" height="92" />
+  <text x="1200" y="862" text-anchor="middle" class="small">Exam Scheduling</text>
+  <text x="1200" y="888" text-anchor="middle" class="tiny">attach paper, marks, and time window</text>
+
+  <rect class="level1" x="1510" y="390" width="320" height="96" />
+  <text x="1670" y="430" text-anchor="middle" class="label">4. Exam Execution</text>
+  <text x="1670" y="460" text-anchor="middle" class="tiny">attempt flow, session control, proctoring</text>
+
+  <line class="link" x1="1670" y1="486" x2="1670" y2="530" />
+  <line class="link" x1="1670" y1="530" x2="1670" y2="560" />
+
+  <rect class="level2" x="1540" y="560" width="260" height="92" />
+  <text x="1670" y="598" text-anchor="middle" class="small">Exam Access</text>
+  <text x="1670" y="624" text-anchor="middle" class="tiny">open exam within valid schedule</text>
+
+  <line class="link" x1="1670" y1="652" x2="1670" y2="692" />
+  <rect class="level2" x="1540" y="692" width="260" height="92" />
+  <text x="1670" y="730" text-anchor="middle" class="small">Attempt and Submission</text>
+  <text x="1670" y="756" text-anchor="middle" class="tiny">answer questions and submit exam</text>
+
+  <line class="link" x1="1670" y1="784" x2="1670" y2="824" />
+  <rect class="level2" x="1540" y="824" width="260" height="92" />
+  <text x="1670" y="862" text-anchor="middle" class="small">Session Locking</text>
+  <text x="1670" y="888" text-anchor="middle" class="tiny">single active session enforcement</text>
+
+  <line class="link" x1="1670" y1="916" x2="1670" y2="956" />
+  <rect class="level2" x="1540" y="956" width="260" height="92" />
+  <text x="1670" y="994" text-anchor="middle" class="small">Proctoring and Heartbeat</text>
+  <text x="1670" y="1020" text-anchor="middle" class="tiny">monitor activity and log violations</text>
+
+  <line class="link" x1="1670" y1="1048" x2="1670" y2="1088" />
+  <rect class="level2" x="1540" y="1088" width="260" height="92" />
+  <text x="1670" y="1126" text-anchor="middle" class="small">Scoring and Completion</text>
+  <text x="1670" y="1152" text-anchor="middle" class="tiny">compute score and close session</text>
+
+  <line class="link" x1="1670" y1="1180" x2="1670" y2="1220" />
+  <rect class="level2" x="1540" y="1220" width="260" height="92" />
+  <text x="1670" y="1258" text-anchor="middle" class="small">Risk Flagging</text>
+  <text x="1670" y="1284" text-anchor="middle" class="tiny">fast-submit and warning detection</text>
+
+  <rect class="level1" x="1980" y="390" width="320" height="96" />
+  <text x="2140" y="430" text-anchor="middle" class="label">5. Review and Admin</text>
+  <text x="2140" y="460" text-anchor="middle" class="tiny">results, oversight, faculty review, admin</text>
+
+  <line class="link" x1="2140" y1="486" x2="2140" y2="530" />
+  <line class="link" x1="2140" y1="530" x2="2140" y2="560" />
+
+  <rect class="level2" x="2010" y="560" width="260" height="92" />
+  <text x="2140" y="598" text-anchor="middle" class="small">Results and History</text>
+  <text x="2140" y="624" text-anchor="middle" class="tiny">student score and past-attempt views</text>
+
+  <line class="link" x1="2140" y1="652" x2="2140" y2="692" />
+  <rect class="level2" x="2010" y="692" width="260" height="92" />
+  <text x="2140" y="730" text-anchor="middle" class="small">Attempt Detail Review</text>
+  <text x="2140" y="756" text-anchor="middle" class="tiny">inspect answers, logs, and risk level</text>
+
+  <line class="link" x1="2140" y1="784" x2="2140" y2="824" />
+  <rect class="level2" x="2010" y="824" width="260" height="92" />
+  <text x="2140" y="862" text-anchor="middle" class="small">Attempt Reset</text>
+  <text x="2140" y="888" text-anchor="middle" class="tiny">move completed attempt back to pending</text>
+
+  <line class="link" x1="2140" y1="916" x2="2140" y2="956" />
+  <rect class="level2" x="2010" y="956" width="260" height="92" />
+  <text x="2140" y="994" text-anchor="middle" class="small">Violation and Session Review</text>
+  <text x="2140" y="1020" text-anchor="middle" class="tiny">monitor webcam, audio, and live sessions</text>
+
+  <line class="link" x1="2140" y1="1048" x2="2140" y2="1088" />
+  <rect class="level2" x="2010" y="1088" width="260" height="92" />
+  <text x="2140" y="1126" text-anchor="middle" class="small">Administrative Control</text>
+  <text x="2140" y="1152" text-anchor="middle" class="tiny">approve faculty and adjust proctor settings</text>
+
+  <text x="1200" y="1715" text-anchor="middle" class="subtitle">This cleaner FDD uses one vertical stack per major branch so labels stay readable and no function boxes overlap</text>
+</svg>

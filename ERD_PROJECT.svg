@@ -1,0 +1,265 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2200" height="1700" viewBox="0 0 2200 1700" role="img" aria-labelledby="title desc">
+  <title id="title">RankRush Exam Portal ERD</title>
+  <desc id="desc">High-resolution entity relationship diagram for the RankRush Exam Portal.</desc>
+  <defs>
+    <style>
+      .bg { fill: #f4f7fb; }
+      .panel { fill: #ffffff; stroke: #d6deea; stroke-width: 2; rx: 28; ry: 28; }
+      .group { fill: #fbfcff; stroke: #e1e7f0; stroke-width: 1.5; rx: 18; ry: 18; }
+      .title { font: 700 34px 'Segoe UI', Arial, sans-serif; fill: #172235; }
+      .subtitle { font: 500 16px 'Segoe UI', Arial, sans-serif; fill: #5b677c; }
+      .heading { font: 700 22px 'Segoe UI', Arial, sans-serif; fill: #182338; }
+      .card { fill: #ffffff; stroke: #8a97af; stroke-width: 2; rx: 16; ry: 16; }
+      .head-auth { fill: #deebff; }
+      .head-core { fill: #dff4e7; }
+      .head-exam { fill: #fff1c2; }
+      .head-monitor { fill: #ffe6dd; }
+      .head-pref { fill: #ece2ff; }
+      .card-title { font: 700 18px 'Segoe UI', Arial, sans-serif; fill: #182338; }
+      .field { font: 500 13px 'Consolas', 'Courier New', monospace; fill: #364259; }
+      .rule { stroke: #cfd6e3; stroke-width: 1.4; }
+      .rel { stroke: #536179; stroke-width: 2.2; fill: none; }
+      .rel-dash { stroke: #7b879d; stroke-width: 2; fill: none; stroke-dasharray: 7 6; }
+      .rel-label { font: 700 12px 'Segoe UI', Arial, sans-serif; fill: #44516a; }
+      .tiny { font: 500 13px 'Segoe UI', Arial, sans-serif; fill: #4f5b70; }
+    </style>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="2200" height="1700" />
+  <rect class="panel" x="40" y="40" width="2120" height="1620" />
+
+  <text x="1100" y="100" text-anchor="middle" class="title">RankRush Exam Portal - ERD</text>
+  <text x="1100" y="132" text-anchor="middle" class="subtitle">Principal models and their relationships across identity, exam authoring, attempts, and monitoring</text>
+
+  <rect class="group" x="80" y="180" width="620" height="1410" />
+  <text x="110" y="220" class="heading">Identity and Support</text>
+
+  <rect class="group" x="740" y="180" width="1380" height="1410" />
+  <text x="770" y="220" class="heading">Exams, Attempts, and Monitoring</text>
+
+  <rect class="card" x="120" y="270" width="270" height="126" />
+  <rect class="head-auth" x="120" y="270" width="270" height="36" />
+  <text x="255" y="294" text-anchor="middle" class="card-title">auth_user</text>
+  <line class="rule" x1="120" y1="306" x2="390" y2="306" />
+  <text x="138" y="332" class="field">PK id</text>
+  <text x="138" y="356" class="field">username, email</text>
+  <text x="138" y="380" class="field">password, is_active</text>
+
+  <rect class="card" x="120" y="455" width="270" height="102" />
+  <rect class="head-auth" x="120" y="455" width="270" height="36" />
+  <text x="255" y="479" text-anchor="middle" class="card-title">auth_group</text>
+  <line class="rule" x1="120" y1="491" x2="390" y2="491" />
+  <text x="138" y="517" class="field">PK id</text>
+  <text x="138" y="541" class="field">name</text>
+
+  <rect class="card" x="120" y="650" width="250" height="120" />
+  <rect class="head-core" x="120" y="650" width="250" height="36" />
+  <text x="245" y="674" text-anchor="middle" class="card-title">StudentInfo</text>
+  <line class="rule" x1="120" y1="686" x2="370" y2="686" />
+  <text x="138" y="712" class="field">PK id</text>
+  <text x="138" y="736" class="field">FK user_id unique</text>
+  <text x="138" y="760" class="field">address, stream, picture</text>
+
+  <rect class="card" x="400" y="650" width="250" height="120" />
+  <rect class="head-core" x="400" y="650" width="250" height="36" />
+  <text x="525" y="674" text-anchor="middle" class="card-title">FacultyInfo</text>
+  <line class="rule" x1="400" y1="686" x2="650" y2="686" />
+  <text x="418" y="712" class="field">PK id</text>
+  <text x="418" y="736" class="field">FK user_id unique</text>
+  <text x="418" y="760" class="field">address, subject, picture</text>
+
+  <rect class="card" x="120" y="850" width="250" height="120" />
+  <rect class="head-pref" x="120" y="850" width="250" height="36" />
+  <text x="245" y="874" text-anchor="middle" class="card-title">StudentPreferenceModel</text>
+  <line class="rule" x1="120" y1="886" x2="370" y2="886" />
+  <text x="138" y="912" class="field">PK id</text>
+  <text x="138" y="936" class="field">FK user_id unique</text>
+  <text x="138" y="960" class="field">sendEmailOnLogin</text>
+
+  <rect class="card" x="400" y="850" width="250" height="146" />
+  <rect class="head-pref" x="400" y="850" width="250" height="36" />
+  <text x="525" y="874" text-anchor="middle" class="card-title">SupportTicket</text>
+  <line class="rule" x1="400" y1="886" x2="650" y2="886" />
+  <text x="418" y="912" class="field">PK id</text>
+  <text x="418" y="936" class="field">FK user_id</text>
+  <text x="418" y="960" class="field">role, ticket_type</text>
+  <text x="418" y="984" class="field">subject, message</text>
+
+  <path class="rel" d="M255 396 V455" />
+  <text x="240" y="432" class="rel-label">M</text>
+  <text x="267" y="432" class="rel-label">N</text>
+  <text x="320" y="432" class="tiny">via Django auth membership tables</text>
+
+  <path class="rel" d="M220 396 V650" />
+  <text x="206" y="530" class="rel-label">1</text>
+  <text x="228" y="638" class="rel-label">1</text>
+
+  <path class="rel" d="M390 334 H480 V650" />
+  <text x="408" y="326" class="rel-label">1</text>
+  <text x="488" y="638" class="rel-label">1</text>
+
+  <path class="rel" d="M170 396 V850" />
+  <text x="156" y="628" class="rel-label">1</text>
+  <text x="178" y="838" class="rel-label">1</text>
+
+  <path class="rel" d="M390 356 H450 V850" />
+  <text x="408" y="348" class="rel-label">1</text>
+  <text x="458" y="838" class="rel-label">M</text>
+
+  <rect class="card" x="790" y="270" width="310" height="160" />
+  <rect class="head-exam" x="790" y="270" width="310" height="36" />
+  <text x="945" y="294" text-anchor="middle" class="card-title">Question_DB</text>
+  <line class="rule" x1="790" y1="306" x2="1100" y2="306" />
+  <text x="808" y="332" class="field">PK qno</text>
+  <text x="808" y="356" class="field">FK professor_id -&gt; auth_user</text>
+  <text x="808" y="380" class="field">question, question_image</text>
+  <text x="808" y="404" class="field">optionA..D, answer, max_marks</text>
+
+  <rect class="card" x="1170" y="270" width="300" height="126" />
+  <rect class="head-exam" x="1170" y="270" width="300" height="36" />
+  <text x="1320" y="294" text-anchor="middle" class="card-title">Question_Paper</text>
+  <line class="rule" x1="1170" y1="306" x2="1470" y2="306" />
+  <text x="1188" y="332" class="field">PK id</text>
+  <text x="1188" y="356" class="field">FK professor_id -&gt; auth_user</text>
+  <text x="1188" y="380" class="field">qPaperTitle</text>
+
+  <rect class="card" x="1540" y="270" width="330" height="148" />
+  <rect class="head-exam" x="1540" y="270" width="330" height="36" />
+  <text x="1705" y="294" text-anchor="middle" class="card-title">Exam_Model</text>
+  <line class="rule" x1="1540" y1="306" x2="1870" y2="306" />
+  <text x="1558" y="332" class="field">PK id</text>
+  <text x="1558" y="356" class="field">FK professor_id -&gt; auth_user</text>
+  <text x="1558" y="380" class="field">FK question_paper_id</text>
+  <text x="1558" y="404" class="field">name, total_marks, time window</text>
+
+  <rect class="card" x="790" y="760" width="310" height="152" />
+  <rect class="head-core" x="790" y="760" width="310" height="36" />
+  <text x="945" y="784" text-anchor="middle" class="card-title">Stu_Question</text>
+  <line class="rule" x1="790" y1="796" x2="1100" y2="796" />
+  <text x="808" y="822" class="field">PK qno</text>
+  <text x="808" y="846" class="field">FK student_id -&gt; auth_user</text>
+  <text x="808" y="870" class="field">question snapshot + options</text>
+  <text x="808" y="894" class="field">answer, choice, max_marks</text>
+
+  <rect class="card" x="1170" y="760" width="300" height="130" />
+  <rect class="head-core" x="1170" y="760" width="300" height="36" />
+  <text x="1320" y="784" text-anchor="middle" class="card-title">StuExam_DB</text>
+  <line class="rule" x1="1170" y1="796" x2="1470" y2="796" />
+  <text x="1188" y="822" class="field">PK id</text>
+  <text x="1188" y="846" class="field">FK student_id -&gt; auth_user</text>
+  <text x="1188" y="870" class="field">FK qpaper_id</text>
+
+  <rect class="card" x="1540" y="760" width="330" height="106" />
+  <rect class="head-core" x="1540" y="760" width="330" height="36" />
+  <text x="1705" y="784" text-anchor="middle" class="card-title">StuResults_DB</text>
+  <line class="rule" x1="1540" y1="796" x2="1870" y2="796" />
+  <text x="1558" y="822" class="field">PK id</text>
+  <text x="1558" y="846" class="field">FK student_id -&gt; auth_user</text>
+
+  <rect class="card" x="790" y="1180" width="330" height="170" />
+  <rect class="head-monitor" x="790" y="1180" width="330" height="36" />
+  <text x="955" y="1204" text-anchor="middle" class="card-title">ExamViolationLog</text>
+  <line class="rule" x1="790" y1="1216" x2="1120" y2="1216" />
+  <text x="808" y="1242" class="field">PK id</text>
+  <text x="808" y="1266" class="field">FK student_id -&gt; auth_user</text>
+  <text x="808" y="1290" class="field">FK professor_id -&gt; auth_user</text>
+  <text x="808" y="1314" class="field">FK qpaper_id</text>
+
+  <rect class="card" x="1170" y="1180" width="330" height="178" />
+  <rect class="head-monitor" x="1170" y="1180" width="330" height="36" />
+  <text x="1335" y="1204" text-anchor="middle" class="card-title">ActiveExamSession</text>
+  <line class="rule" x1="1170" y1="1216" x2="1500" y2="1216" />
+  <text x="1188" y="1242" class="field">PK id</text>
+  <text x="1188" y="1266" class="field">FK student_id -&gt; auth_user</text>
+  <text x="1188" y="1290" class="field">FK professor_id -&gt; auth_user</text>
+  <text x="1188" y="1314" class="field">FK qpaper_id</text>
+  <text x="1188" y="1338" class="field">session_token, status</text>
+
+  <rect class="card" x="1540" y="1180" width="330" height="128" />
+  <rect class="head-monitor" x="1540" y="1180" width="330" height="36" />
+  <text x="1705" y="1204" text-anchor="middle" class="card-title">ProctoringSettings</text>
+  <line class="rule" x1="1540" y1="1216" x2="1870" y2="1216" />
+  <text x="1558" y="1242" class="field">PK id = 1</text>
+  <text x="1558" y="1266" class="field">threshold and timing fields</text>
+  <text x="1558" y="1290" class="field">range summary values</text>
+
+  <path class="rel" d="M650 680 H790" />
+  <text x="684" y="670" class="rel-label">1</text>
+  <text x="760" y="670" class="rel-label">M</text>
+  <text x="720" y="706" text-anchor="middle" class="tiny">faculty owns questions</text>
+
+  <path class="rel" d="M650 710 H1170" />
+  <text x="684" y="700" class="rel-label">1</text>
+  <text x="1146" y="700" class="rel-label">M</text>
+  <text x="930" y="736" text-anchor="middle" class="tiny">faculty owns question papers</text>
+
+  <path class="rel" d="M650 740 H1540" />
+  <text x="684" y="730" class="rel-label">1</text>
+  <text x="1516" y="730" class="rel-label">M</text>
+  <text x="1100" y="766" text-anchor="middle" class="tiny">faculty schedules exams</text>
+
+  <path class="rel" d="M1100 332 H1170" />
+  <text x="1118" y="322" class="rel-label">M</text>
+  <text x="1148" y="322" class="rel-label">N</text>
+
+  <path class="rel" d="M1470 344 H1540" />
+  <text x="1488" y="334" class="rel-label">1</text>
+  <text x="1518" y="334" class="rel-label">M</text>
+
+  <path class="rel" d="M1320 396 V760" />
+  <text x="1306" y="582" class="rel-label">1</text>
+  <text x="1328" y="748" class="rel-label">M</text>
+
+  <path class="rel" d="M1100 836 H1170" />
+  <text x="1118" y="826" class="rel-label">M</text>
+  <text x="1148" y="826" class="rel-label">N</text>
+
+  <path class="rel" d="M1470 810 H1540" />
+  <text x="1488" y="800" class="rel-label">M</text>
+  <text x="1518" y="800" class="rel-label">N</text>
+
+  <path class="rel" d="M1320 890 V1180" />
+  <text x="1306" y="1040" class="rel-label">1</text>
+  <text x="1328" y="1168" class="rel-label">M</text>
+
+  <path class="rel" d="M1705 418 V1180 H1500" />
+  <text x="1691" y="810" class="rel-label">1</text>
+  <text x="1512" y="1168" class="rel-label">M</text>
+
+  <path class="rel-dash" d="M1705 1308 V1420 H1335" />
+  <text x="1520" y="1450" text-anchor="middle" class="tiny">runtime configuration used by application logic</text>
+
+  <path class="rel" d="M390 334 H790" />
+  <text x="418" y="324" class="rel-label">1</text>
+  <text x="766" y="324" class="rel-label">M</text>
+
+  <path class="rel" d="M390 356 H1170" />
+  <text x="418" y="346" class="rel-label">1</text>
+  <text x="1146" y="346" class="rel-label">M</text>
+
+  <path class="rel" d="M390 378 H1540" />
+  <text x="418" y="368" class="rel-label">1</text>
+  <text x="1516" y="368" class="rel-label">M</text>
+
+  <path class="rel" d="M390 710 H790" />
+  <text x="418" y="700" class="rel-label">1</text>
+  <text x="766" y="700" class="rel-label">M</text>
+
+  <path class="rel" d="M390 740 H1170" />
+  <text x="418" y="730" class="rel-label">1</text>
+  <text x="1146" y="730" class="rel-label">M</text>
+
+  <path class="rel" d="M390 770 H1540" />
+  <text x="418" y="760" class="rel-label">1</text>
+  <text x="1516" y="760" class="rel-label">1</text>
+
+  <path class="rel" d="M390 920 H790" />
+  <text x="418" y="910" class="rel-label">1</text>
+  <text x="766" y="910" class="rel-label">M</text>
+
+  <path class="rel" d="M650 930 H1170" />
+  <text x="684" y="920" class="rel-label">1</text>
+  <text x="1146" y="920" class="rel-label">M</text>
+
+  <text x="1100" y="1580" text-anchor="middle" class="subtitle">Separate ERD image with more spacing so entity cards, relationship labels, and lines remain readable</text>
+</svg>

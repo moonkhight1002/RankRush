@@ -18,9 +18,9 @@ class StudentForm(forms.ModelForm):
         model = User
         fields = ['username', 'email', 'password']
         widgets = {
-            'password': forms.PasswordInput(attrs = {'id':'passwordfield','class':'form-control'}),
-            'email' : forms.EmailInput(attrs = {'id':'emailfield','class':'form-control'}),
-            'username' : forms.TextInput(attrs = {'id':'usernamefield','class':'form-control'})
+            'password': forms.PasswordInput(attrs = {'id':'passwordfield','class':'form-control', 'placeholder': 'Password'}),
+            'email' : forms.EmailInput(attrs = {'id':'emailfield','class':'form-control', 'placeholder': 'Email Address'}),
+            'username' : forms.TextInput(attrs = {'id':'usernamefield','class':'form-control', 'placeholder': 'Username'})
         }
 
 class StudentInfoForm(forms.ModelForm):
@@ -32,5 +32,5 @@ class StudentInfoForm(forms.ModelForm):
         fields = ['address','stream','picture']
         widgets = {
             'address': forms.Textarea(attrs = {'class':'form-control'}),
-            'stream' : forms.TextInput(attrs = {'class':'form-control'})
+            'stream' : forms.TextInput(attrs = {'class':'form-control', 'placeholder': 'Stream / Course'})
         }

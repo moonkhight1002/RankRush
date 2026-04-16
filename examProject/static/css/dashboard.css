@@ -8,6 +8,17 @@ body {
         url("../img/bg.jpg") center/cover no-repeat fixed;
 }
 
+body.theme-light .student-eyebrow,
+body.theme-light .student-settings-panel p,
+body.theme-light .support-info-card p {
+    color: rgba(27, 42, 74, 0.88) !important;
+}
+
+body.theme-light .student-settings-panel h3,
+body.theme-light .support-info-card h3 {
+    color: #22345c !important;
+}
+
 body::before {
     content: "";
     position: fixed;

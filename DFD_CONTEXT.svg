@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2000" height="900" viewBox="0 0 2000 900" role="img" aria-labelledby="title desc">
+  <title id="title">RankRush Exam Portal Context DFD</title>
+  <desc id="desc">High-resolution context level data flow diagram for the RankRush Exam Portal.</desc>
+  <defs>
+    <style>
+      .bg { fill: #f4f7fb; }
+      .panel { fill: #ffffff; stroke: #d6deea; stroke-width: 2; rx: 28; ry: 28; }
+      .title { font: 700 34px 'Segoe UI', Arial, sans-serif; fill: #172235; }
+      .subtitle { font: 500 16px 'Segoe UI', Arial, sans-serif; fill: #5b677c; }
+      .entity { fill: #eef2f7; stroke: #67758f; stroke-width: 2.2; rx: 16; ry: 16; }
+      .process { fill: #dff4e7; stroke: #2f7d57; stroke-width: 2.5; }
+      .label { font: 700 22px 'Segoe UI', Arial, sans-serif; fill: #182338; }
+      .small { font: 500 16px 'Segoe UI', Arial, sans-serif; fill: #4f5b70; }
+      .tiny { font: 500 14px 'Segoe UI', Arial, sans-serif; fill: #4f5b70; }
+      .flow { stroke: #49566d; stroke-width: 2.6; fill: none; marker-end: url(#arrow); }
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#49566d" />
+    </marker>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="2000" height="900" />
+  <rect class="panel" x="40" y="40" width="1920" height="820" />
+
+  <text x="1000" y="105" text-anchor="middle" class="title">RankRush Exam Portal - Context DFD</text>
+  <text x="1000" y="138" text-anchor="middle" class="subtitle">External actors and the overall system boundary</text>
+
+  <rect class="entity" x="110" y="250" width="280" height="100" />
+  <text x="250" y="292" text-anchor="middle" class="label">Student</text>
+  <text x="250" y="322" text-anchor="middle" class="small">registers, logs in, takes exams</text>
+
+  <rect class="entity" x="110" y="520" width="280" height="100" />
+  <text x="250" y="562" text-anchor="middle" class="label">Email Service</text>
+  <text x="250" y="592" text-anchor="middle" class="small">activation and alert delivery</text>
+
+  <ellipse class="process" cx="1000" cy="430" rx="330" ry="135" />
+  <text x="1000" y="418" text-anchor="middle" class="label">RankRush Exam Portal</text>
+  <text x="1000" y="452" text-anchor="middle" class="small">Django web application for students, faculty, and admin</text>
+
+  <rect class="entity" x="1610" y="250" width="280" height="100" />
+  <text x="1750" y="292" text-anchor="middle" class="label">Faculty</text>
+  <text x="1750" y="322" text-anchor="middle" class="small">creates exams and reviews attempts</text>
+
+  <rect class="entity" x="1610" y="520" width="280" height="100" />
+  <text x="1750" y="562" text-anchor="middle" class="label">Admin</text>
+  <text x="1750" y="592" text-anchor="middle" class="small">approves faculty and tunes settings</text>
+
+  <path class="flow" d="M390 290 H670" />
+  <text x="530" y="270" text-anchor="middle" class="tiny">registration, login, exam requests, support</text>
+
+  <path class="flow" d="M670 520 H390" />
+  <text x="530" y="545" text-anchor="middle" class="tiny">dashboards, results, exam pages, feedback</text>
+
+  <path class="flow" d="M1330 290 H1610" />
+  <text x="1470" y="270" text-anchor="middle" class="tiny">authoring, monitoring, review actions</text>
+
+  <path class="flow" d="M1610 520 H1330" />
+  <text x="1470" y="545" text-anchor="middle" class="tiny">faculty dashboards, attempts, violations</text>
+
+  <path class="flow" d="M1330 395 H1610" />
+  <text x="1470" y="375" text-anchor="middle" class="tiny">admin panels, support records, proctor settings</text>
+
+  <path class="flow" d="M1610 405 H1330" />
+  <text x="1470" y="435" text-anchor="middle" class="tiny">activation, role assignment, configuration</text>
+
+  <path class="flow" d="M670 575 H390" />
+  <text x="530" y="600" text-anchor="middle" class="tiny">activation email, login alerts, cheat notifications</text>
+
+  <text x="1000" y="785" text-anchor="middle" class="subtitle">Separate high-resolution context diagram to avoid congestion and preserve readability</text>
+</svg>
