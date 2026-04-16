@@ -16,6 +16,16 @@ Including another URLconf
 from django.contrib import admin
 from . import views
 from django.urls import path,include 
+
+
+def _rankrush_admin_has_permission(request):
+    user = request.user
+    return bool(user and user.is_active and user.is_superuser)
+
+
+admin.site.has_permission = _rankrush_admin_has_permission
+
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('student/',include('student.urls')),

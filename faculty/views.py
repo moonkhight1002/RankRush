@@ -23,6 +23,8 @@ from examProject.text_utils import split_full_name
 def redirect_authenticated_user(request):
     if not request.user.is_authenticated:
         return None
+    if request.user.is_superuser:
+        return redirect('/admin/')
     if has_group(request.user, "Professor"):
         return redirect('faculty-index')
     return redirect('index')
@@ -131,25 +133,29 @@ class LoginView(View):
         username = request.POST['username']
         password = request.POST['password']
         has_grp = False
+        user_check = None
 
         if username and password:
             exists = User.objects.filter(username=username).exists()
             if exists:
                 user_check = User.objects.get(username=username)
+                has_grp = has_group(user_check, "Professor")
+                if user_check.is_superuser or not has_grp:
+                    messages.error(request, 'Invalid credentials')
+                    return render(request, 'faculty/login.html')
                 if not user_check.is_active:
                     messages.error(request, 'Your faculty account is waiting for admin approval.')
                     return render(request, 'faculty/login.html')
-                has_grp = has_group(user_check, "Professor")
 
             user = auth.authenticate(username=username, password=password)
+            if user and user.is_superuser:
+                messages.error(request, 'Invalid credentials')
+                return render(request, 'faculty/login.html')
             if user and user.is_active and exists and has_grp:
                 auth.login(request, user)
                 display_name = user.get_full_name() or user.username
                 messages.success(request, "Welcome, " + display_name + ". You are now logged in.")
                 return redirect('faculty-index')
-            if exists and not has_grp:
-                messages.error(request, 'You do not have permission to login as faculty. Please contact admin.')
-                return render(request, 'faculty/login.html')
 
             messages.error(request, 'Invalid credentials')
             return render(request, 'faculty/login.html')

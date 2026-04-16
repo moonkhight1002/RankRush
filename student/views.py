@@ -11,7 +11,10 @@ from django.contrib import messages
 from django.contrib.sites.shortcuts import get_current_site
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode 
 from django.urls import reverse
-from django.utils.encoding import force_bytes, force_text, DjangoUnicodeDecodeError
+try:
+    from django.utils.encoding import force_bytes, force_str, DjangoUnicodeDecodeError
+except ImportError:
+    from django.utils.encoding import force_bytes, force_text as force_str, DjangoUnicodeDecodeError
 from .utils import account_activation_token
 from django.core.mail import EmailMessage
 import threading
@@ -26,6 +29,8 @@ from questions.models import Exam_Model
 def redirect_authenticated_user(request):
     if not request.user.is_authenticated:
         return None
+    if request.user.is_superuser:
+        return redirect('/admin/')
     if request.user.groups.filter(name='Professor').exists():
         return redirect('faculty-index')
     return redirect('index')
@@ -132,11 +137,15 @@ class LoginView(View):
 
 		if username and password:
 			exis = User.objects.filter(username=username).exists()
+			user_ch = None
 			if exis:
 				user_ch = User.objects.get(username=username)
-				if user_ch.is_staff:
-					messages.error(request,"You are trying to login as student, but you have registered as faculty. We are redirecting you to faculty login. If you are having problem in logging in please reset password or contact admin")
-					return redirect('faculty-login')
+				if user_ch.is_superuser:
+					messages.error(request,'Invalid credentials')
+					return render(request,'student/login.html')
+				if user_ch.groups.filter(name='Professor').exists():
+					messages.error(request,'Invalid credentials')
+					return render(request,'student/login.html')
 			user = auth.authenticate(username=username,password=password)
 			if user:
 				if user.is_active:
@@ -166,10 +175,8 @@ class LoginView(View):
 					return redirect('index')
 			
 			else:
-				user_n = User.objects.filter(username=username).exists()
-				if user_n:
-					user_v = User.objects.get(username=username)
-					if user_v.is_active:
+				if exis and user_ch:
+					if user_ch.is_active:
 						messages.error(request,'Invalid credentials')	
 						return render(request,'student/login.html')
 					else:
@@ -197,7 +204,7 @@ class EmailThread(threading.Thread):
 class VerificationView(View):
 	def get(self,request,uidb64,token):
 		try:
-			id = force_text(urlsafe_base64_decode(uidb64))
+			id = force_str(urlsafe_base64_decode(uidb64))
 			user = User.objects.get(pk=id)
 			if not account_activation_token.check_token(user,token):
 				messages.error(request,"User already Activated. Please Proceed With Login")

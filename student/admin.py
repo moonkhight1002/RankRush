@@ -1,11 +1,15 @@
 from django.contrib import admin
 from django.contrib import messages
+from django.core.exceptions import PermissionDenied
 from django.template.response import TemplateResponse
 from django.urls import path
 from .models import *
 
 
 def proctor_ml_test_view(request):
+    if not request.user.is_superuser:
+        raise PermissionDenied("Only superusers can access the proctoring ML test.")
+
     settings_obj = ProctoringSettings.get_solo()
     if request.method == "POST":
         idle_baseline = float(request.POST.get("idle_baseline", settings_obj.idle_baseline) or settings_obj.idle_baseline)
