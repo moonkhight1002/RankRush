@@ -169,3 +169,20 @@ class LogoutView(View):
         auth.logout(request)
         messages.success(request, 'Logged Out')
         return redirect('faculty-login')
+
+
+@login_required(login_url='faculty-login')
+def update_profile_picture(request):
+    if request.method != 'POST':
+        return redirect('faculty-index')
+
+    picture = request.FILES.get('picture')
+    if not picture:
+        messages.error(request, 'Select an image file to update your profile picture.')
+        return redirect(request.META.get('HTTP_REFERER', 'faculty-index'))
+
+    profile, _ = FacultyInfo.objects.get_or_create(user=request.user)
+    profile.picture = picture
+    profile.save(update_fields=['picture'])
+    messages.success(request, 'Profile picture updated successfully.')
+    return redirect(request.META.get('HTTP_REFERER', 'faculty-index'))

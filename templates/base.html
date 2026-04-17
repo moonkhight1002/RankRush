@@ -73,24 +73,27 @@
             <a href="#" class="student-modal-close" aria-label="Close">&times;</a>
             <p class="student-eyebrow">Profile</p>
             <h2 class="student-page-title student-modal-title">Change Profile Picture</h2>
-            <p class="student-page-copy">Frontend preview only. Saving a new student picture still needs backend support.</p>
+            <p class="student-page-copy">Upload a new profile photo and save it to your student account.</p>
 
-            <div class="student-form-group student-profile-upload-group">
-                <label for="student-profile-picture-file">Upload New Picture</label>
-                <input type="file" id="student-profile-picture-file" accept="image/*" class="student-styled-file-input">
-                <label for="student-profile-picture-file" class="student-profile-preview student-profile-preview-trigger">
-                    {% if request.user.studentinfo.picture %}
-                        <img src="{{ request.user.studentinfo.picture.url }}" class="student-profile-preview-pic" alt="Profile picture">
-                    {% else %}
-                        <img src="{% static 'img/default-avatar.jpg' %}" class="student-profile-preview-pic" alt="Default avatar">
-                    {% endif %}
-                    <span class="student-profile-preview-text">Click to select image.</span>
-                </label>
-            </div>
+            <form method="post" action="{% url 'student-profile-picture' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="student-form-group student-profile-upload-group">
+                    <label for="student-profile-picture-file">Upload New Picture</label>
+                    <input type="file" id="student-profile-picture-file" name="picture" accept="image/*" class="student-styled-file-input" required>
+                    <label for="student-profile-picture-file" class="student-profile-preview student-profile-preview-trigger">
+                        {% if request.user.studentinfo.picture %}
+                            <img src="{{ request.user.studentinfo.picture.url }}" class="student-profile-preview-pic" id="studentProfilePreviewImage" alt="Profile picture">
+                        {% else %}
+                            <img src="{% static 'img/default-avatar.jpg' %}" class="student-profile-preview-pic" id="studentProfilePreviewImage" alt="Default avatar">
+                        {% endif %}
+                        <span class="student-profile-preview-text">Click to select image.</span>
+                    </label>
+                </div>
 
-            <div class="student-submit-area">
-                <a href="#" class="student-main-btn student-modal-btn">Done</a>
-            </div>
+                <div class="student-submit-area">
+                    <button type="submit" class="student-main-btn student-modal-btn">Save Changes</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -100,16 +103,19 @@
             <a href="#" class="student-modal-close" aria-label="Close">&times;</a>
             <p class="student-eyebrow">Profile</p>
             <h2 class="student-page-title student-modal-title">Change Email</h2>
-            <p class="student-page-copy">Frontend preview only. Use the settings page if you later add backend support for email updates.</p>
+            <p class="student-page-copy">Send an email change request to the admin team. Your account email will change only after admin approval.</p>
 
-            <div class="student-form-group">
-                <label for="student-profile-email">Email Address</label>
-                <input type="email" id="student-profile-email" value="{{ request.user.email }}" placeholder="Enter email address">
-            </div>
+            <form method="post" action="{% url 'request_email_change' %}">
+                {% csrf_token %}
+                <div class="student-form-group">
+                    <label for="student-profile-email">New Email Address</label>
+                    <input type="email" name="requested_email" id="student-profile-email" value="{{ request.user.email }}" placeholder="Enter new email address" required>
+                </div>
 
-            <div class="student-submit-area">
-                <a href="#" class="student-main-btn student-modal-btn">Done</a>
-            </div>
+                <div class="student-submit-area">
+                    <button type="submit" class="student-main-btn student-modal-btn">Send Request</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -184,6 +190,22 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     applyTheme(getPreferredTheme());
+
+    var studentPictureInput = document.getElementById('student-profile-picture-file');
+    var studentPreviewImage = document.getElementById('studentProfilePreviewImage');
+    if (studentPictureInput && studentPreviewImage) {
+        studentPictureInput.addEventListener('change', function(event) {
+            var file = event.target.files && event.target.files[0];
+            if (!file) {
+                return;
+            }
+            var reader = new FileReader();
+            reader.onload = function(loadEvent) {
+                studentPreviewImage.src = loadEvent.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+    }
 });
 
 document.querySelectorAll('.js-student-logout-form').forEach(function(form) {

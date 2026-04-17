@@ -1,10 +1,21 @@
 from django.shortcuts import render, redirect
 from .models import StudentPreferenceModel, SupportTicket
 from django.contrib import messages
+from django.contrib.auth.models import User
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
 from examProject.text_utils import normalize_title_case
+
+
+def _support_role_for_user(user):
+    return SupportTicket.ROLE_FACULTY if user.groups.filter(name='Professor').exists() else SupportTicket.ROLE_STUDENT
+
+
+def _default_profile_redirect(user):
+    return 'faculty-index' if user.groups.filter(name='Professor').exists() else 'index'
 
 @login_required(login_url='login')
 def index(request):
@@ -61,7 +72,7 @@ def change_password(request):
 @login_required(login_url='login')
 def contact_support(request):
     is_faculty = request.user.groups.filter(name='Professor').exists()
-    role = SupportTicket.ROLE_FACULTY if is_faculty else SupportTicket.ROLE_STUDENT
+    role = _support_role_for_user(request.user)
     template_name = 'support/contact_support_faculty.html' if is_faculty else 'support/contact_support_student.html'
     has_registered_email = bool((request.user.email or '').strip())
 
@@ -96,3 +107,48 @@ def contact_support(request):
         'support_types': SupportTicket.TYPE_CHOICES,
     }
     return render(request, template_name, context)
+
+
+@login_required(login_url='login')
+def request_email_change(request):
+    redirect_name = _default_profile_redirect(request.user)
+    redirect_target = request.META.get('HTTP_REFERER') or redirect(redirect_name).url
+
+    if request.method != 'POST':
+        return redirect(redirect_target)
+
+    requested_email = (request.POST.get('requested_email') or '').strip().lower()
+    current_email = (request.user.email or '').strip()
+
+    if not requested_email:
+        messages.error(request, 'Enter the new email address you want the admin to approve.')
+        return redirect(redirect_target)
+
+    try:
+        validate_email(requested_email)
+    except ValidationError:
+        messages.error(request, 'Enter a valid email address.')
+        return redirect(redirect_target)
+
+    if current_email and requested_email.lower() == current_email.lower():
+        messages.error(request, 'That email is already linked to your account.')
+        return redirect(redirect_target)
+
+    if User.objects.filter(email__iexact=requested_email).exclude(pk=request.user.pk).exists():
+        messages.error(request, 'That email is already in use by another account.')
+        return redirect(redirect_target)
+
+    SupportTicket.objects.create(
+        user=request.user,
+        role=_support_role_for_user(request.user),
+        registered_email=current_email or requested_email,
+        ticket_type=SupportTicket.TYPE_EMAIL_CHANGE,
+        subject='Email Change Request',
+        message=(
+            f'Current email: {current_email or "Not set"}\n'
+            f'Requested new email: {requested_email}\n'
+            'Please review and approve this email change.'
+        ),
+    )
+    messages.success(request, 'Email change request sent to admin for approval.')
+    return redirect(redirect_target)

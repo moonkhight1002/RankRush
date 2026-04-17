@@ -72,24 +72,27 @@
             <a href="#" class="modal-close" aria-label="Close">&times;</a>
             <p class="eyebrow">Profile</p>
             <h2 class="page-title modal-title">Change Profile Picture</h2>
-            <p class="page-copy">Frontend preview only. Saving a new image still needs backend support.</p>
+            <p class="page-copy">Upload a new profile photo and save it to your faculty account.</p>
 
-            <div class="form-group profile-upload-group">
-                <label for="profile-picture-file">Upload New Picture</label>
-                <input type="file" id="profile-picture-file" accept="image/*" class="styled-file-input">
-                <label for="profile-picture-file" class="profile-preview profile-preview-trigger">
-                    {% if request.user.facultyinfo.picture %}
-                        <img src="{{ request.user.facultyinfo.picture.url }}" class="profile-preview-pic" alt="Profile picture">
-                    {% else %}
-                        <img src="{% static 'img/default-avatar.jpg' %}" class="profile-preview-pic" alt="Default avatar">
-                    {% endif %}
-                    <span class="profile-preview-text">Click to select image.</span>
-                </label>
-            </div>
+            <form method="post" action="{% url 'faculty-profile-picture' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="form-group profile-upload-group">
+                    <label for="profile-picture-file">Upload New Picture</label>
+                    <input type="file" id="profile-picture-file" name="picture" accept="image/*" class="styled-file-input" required>
+                    <label for="profile-picture-file" class="profile-preview profile-preview-trigger">
+                        {% if request.user.facultyinfo.picture %}
+                            <img src="{{ request.user.facultyinfo.picture.url }}" class="profile-preview-pic" id="facultyProfilePreviewImage" alt="Profile picture">
+                        {% else %}
+                            <img src="{% static 'img/default-avatar.jpg' %}" class="profile-preview-pic" id="facultyProfilePreviewImage" alt="Default avatar">
+                        {% endif %}
+                        <span class="profile-preview-text">Click to select image.</span>
+                    </label>
+                </div>
 
-            <div class="submit-area">
-                <a href="#" class="main-btn modal-btn">Done</a>
-            </div>
+                <div class="submit-area">
+                    <button type="submit" class="main-btn modal-btn">Save Changes</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -99,16 +102,19 @@
             <a href="#" class="modal-close" aria-label="Close">&times;</a>
             <p class="eyebrow">Profile</p>
             <h2 class="page-title modal-title">Change Email</h2>
-            <p class="page-copy">Frontend preview only. Saving a new email still needs backend support.</p>
+            <p class="page-copy">Send an email change request to the admin team. Your faculty email will update only after admin approval.</p>
 
-            <div class="form-group">
-                <label for="profile-email">Email Address</label>
-                <input type="email" id="profile-email" value="{{ request.user.email }}" placeholder="Enter email address">
-            </div>
+            <form method="post" action="{% url 'request_email_change' %}">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="profile-email">New Email Address</label>
+                    <input type="email" name="requested_email" id="profile-email" value="{{ request.user.email }}" placeholder="Enter new email address" required>
+                </div>
 
-            <div class="submit-area">
-                <a href="#" class="main-btn modal-btn">Done</a>
-            </div>
+                <div class="submit-area">
+                    <button type="submit" class="main-btn modal-btn">Send Request</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -183,6 +189,22 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     applyTheme(getPreferredTheme());
+
+    var facultyPictureInput = document.getElementById('profile-picture-file');
+    var facultyPreviewImage = document.getElementById('facultyProfilePreviewImage');
+    if (facultyPictureInput && facultyPreviewImage) {
+        facultyPictureInput.addEventListener('change', function(event) {
+            var file = event.target.files && event.target.files[0];
+            if (!file) {
+                return;
+            }
+            var reader = new FileReader();
+            reader.onload = function(loadEvent) {
+                facultyPreviewImage.src = loadEvent.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+    }
 });
 
 document.querySelectorAll('.js-faculty-logout-form').forEach(function(form) {

@@ -5,6 +5,7 @@ from django.contrib.auth import views as auth_views
 
 urlpatterns = [
     path('',views.index,name="faculty-index"),
+    path('profile-picture/', views.update_profile_picture, name='faculty-profile-picture'),
     path('register/',Register.as_view(),name = "faculty-register"),
     path('login/',LoginView.as_view(),name="faculty-login"),
     path('logout/',LogoutView.as_view(),name="faculty-logout"),

@@ -13,11 +13,13 @@ class SupportTicket(models.Model):
     TYPE_FEEDBACK = 'feedback'
     TYPE_ISSUE = 'issue'
     TYPE_HELP = 'help'
+    TYPE_EMAIL_CHANGE = 'email_change'
 
     TYPE_CHOICES = [
         (TYPE_FEEDBACK, 'Feedback'),
         (TYPE_ISSUE, 'Issue Report'),
         (TYPE_HELP, 'Help Request'),
+        (TYPE_EMAIL_CHANGE, 'Email Change Request'),
     ]
 
     ROLE_STUDENT = 'student'
