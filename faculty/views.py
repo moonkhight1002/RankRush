@@ -19,6 +19,7 @@ from datetime import timedelta
 from .forms import FacultyForm, FacultyInfoForm
 from .models import FacultyInfo
 from examProject.text_utils import split_full_name
+from studentPreferences.auth_identifier import get_auth_identifier_username_candidates
 
 def redirect_authenticated_user(request):
     if not request.user.is_authenticated:
@@ -130,32 +131,35 @@ class LoginView(View):
         return response
 
     def post(self, request):
-        username = request.POST['username']
+        username_candidates = get_auth_identifier_username_candidates(
+            request.POST.get('username'),
+            email=request.POST.get('email'),
+        )
         password = request.POST['password']
-        has_grp = False
-        user_check = None
 
-        if username and password:
-            exists = User.objects.filter(username=username).exists()
-            if exists:
-                user_check = User.objects.get(username=username)
-                has_grp = has_group(user_check, "Professor")
-                if user_check.is_superuser or not has_grp:
-                    messages.error(request, 'Invalid credentials')
-                    return render(request, 'faculty/login.html')
-                if not user_check.is_active:
+        if username_candidates and password:
+            matched_user = None
+            for username in username_candidates:
+                user_candidate = User.objects.filter(username=username).first()
+                if not user_candidate:
+                    continue
+                if user_candidate.is_superuser or not has_group(user_candidate, "Professor"):
+                    continue
+                matched_user = user_candidate
+                if not user_candidate.is_active:
                     messages.error(request, 'Your faculty account is waiting for admin approval.')
                     return render(request, 'faculty/login.html')
 
-            user = auth.authenticate(username=username, password=password)
-            if user and user.is_superuser:
+                user = auth.authenticate(username=username, password=password)
+                if user and user.is_active:
+                    auth.login(request, user)
+                    display_name = user.get_full_name() or user.username
+                    messages.success(request, "Welcome, " + display_name + ". You are now logged in.")
+                    return redirect('faculty-index')
+
+            if matched_user:
                 messages.error(request, 'Invalid credentials')
                 return render(request, 'faculty/login.html')
-            if user and user.is_active and exists and has_grp:
-                auth.login(request, user)
-                display_name = user.get_full_name() or user.username
-                messages.success(request, "Welcome, " + display_name + ". You are now logged in.")
-                return redirect('faculty-index')
 
             messages.error(request, 'Invalid credentials')
             return render(request, 'faculty/login.html')

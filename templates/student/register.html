@@ -36,15 +36,39 @@
             <h1>Create Student Account</h1>
 
             {% include 'partials/_messages.html' %}
+            {% if student_form.errors %}
+                <div class="form-errors">{{ student_form.errors }}</div>
+            {% endif %}
+            {% if student_info_form.errors %}
+                <div class="form-errors">{{ student_info_form.errors }}</div>
+            {% endif %}
 
-            {{ student_form.username }}
-{{ student_form.full_name }}
-
-{{ student_form.email }}
-
-{{ student_form.password }}
-
-{{ student_info_form.stream }}
+            {% if auth_identifier.uses_manual_username and auth_identifier.enabled %}
+                <div class="auth-identifier-field auth-identifier-field-{{ auth_identifier.position }}">
+                    {% if auth_identifier.is_prefix %}
+                        <span class="auth-identifier-affix">{{ auth_identifier.text }}</span>
+                    {% endif %}
+                    {{ student_form.username }}
+                    {% if auth_identifier.is_suffix %}
+                        <span class="auth-identifier-affix">{{ auth_identifier.text }}</span>
+                    {% endif %}
+                </div>
+            {% elif auth_identifier.uses_manual_username %}
+                {{ student_form.username }}
+            {% endif %}
+            {% if auth_identifier.uses_email_prefix %}
+                {{ student_form.username }}
+                <p class="auth-username-note">
+                    Your username will be created automatically from the part before <code>@</code> in your email address.
+                </p>
+            {% endif %}
+            {{ student_form.full_name }}
+            {{ student_form.email }}
+            <div class="auth-password-field">
+                {{ student_form.password }}
+                {% include 'partials/_password_rules_popup.html' %}
+            </div>
+            {{ student_info_form.stream }}
 
             <!-- AVATAR UPLOAD -->
             <div class="avatar-upload">
@@ -77,6 +101,7 @@
 </div>
 
 <script src="{% static 'js/auth_switch.js' %}"></script>
+<script src="{% static 'js/password_rules_popup.js' %}"></script>
 <script>
 document.getElementById("avatarInput")?.addEventListener("change", function(e){
     const file = e.target.files[0];

@@ -1,12 +1,15 @@
 import shutil
 import tempfile
+from unittest.mock import patch
 
 from django.contrib.auth.models import Group, User
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
+from student.forms import StudentForm
 from student.models import StudentInfo
+from studentPreferences.models import AuthIdentifierSettings
 
 
 class AdminAccessTests(TestCase):
@@ -110,3 +113,155 @@ class StudentProfilePictureTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.student_user.studentinfo.refresh_from_db()
         self.assertTrue(self.student_user.studentinfo.picture.name.endswith("avatar.png"))
+
+
+class StudentRegistrationFormTests(TestCase):
+    def test_student_registration_can_use_email_prefix_mode(self):
+        settings_obj = AuthIdentifierSettings.get_solo()
+        settings_obj.username_mode = AuthIdentifierSettings.MODE_EMAIL_PREFIX
+        settings_obj.username_affix = "@xyz.ac.in"
+        settings_obj.affix_position = AuthIdentifierSettings.POSITION_SUFFIX
+        settings_obj.save()
+
+        form = StudentForm(
+            data={
+                "full_name": "new student",
+                "email": "newstudent@example.com",
+                "password": "Abc!12",
+            }
+        )
+
+        self.assertTrue(form.is_valid())
+        self.assertEqual(form.cleaned_data["username"], "newstudent@xyz.ac.in")
+
+    def test_student_registration_applies_configured_username_affix(self):
+        settings_obj = AuthIdentifierSettings.get_solo()
+        settings_obj.username_affix = "@xyz.ac.in"
+        settings_obj.affix_position = AuthIdentifierSettings.POSITION_SUFFIX
+        settings_obj.save()
+
+        form = StudentForm(
+            data={
+                "username": "newstudent",
+                "full_name": "new student",
+                "email": "student@example.com",
+                "password": "Abc!12",
+            }
+        )
+
+        self.assertTrue(form.is_valid())
+        self.assertEqual(form.cleaned_data["username"], "newstudent@xyz.ac.in")
+
+    def test_student_registration_rejects_weak_password(self):
+        form = StudentForm(
+            data={
+                "username": "newstudent",
+                "full_name": "new student",
+                "email": "student@example.com",
+                "password": "abc12!",
+            }
+        )
+
+        self.assertFalse(form.is_valid())
+        self.assertIn("password", form.errors)
+
+    def test_student_registration_accepts_strong_password(self):
+        form = StudentForm(
+            data={
+                "username": "newstudent",
+                "full_name": "new student",
+                "email": "student@example.com",
+                "password": "Abc!12",
+            }
+        )
+
+        self.assertTrue(form.is_valid())
+
+
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+class StudentRegistrationViewTests(TestCase):
+    @patch("student.views.EmailThread")
+    def test_student_registration_creates_inactive_student_and_assigns_group(self, email_thread):
+        response = self.client.post(
+            reverse("register"),
+            {
+                "username": "newstudent",
+                "full_name": "new student",
+                "email": "newstudent@example.com",
+                "password": "Abc!12",
+                "address": "Bhubaneswar",
+                "stream": "Computer Science",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse("login"))
+
+        student = User.objects.get(username="newstudent")
+        self.assertFalse(student.is_active)
+        self.assertTrue(student.groups.filter(name="Student").exists())
+        self.assertTrue(StudentInfo.objects.filter(user=student, stream="Computer Science").exists())
+        email_thread.return_value.start.assert_called_once()
+
+
+class StudentAffixLoginTests(TestCase):
+    def setUp(self):
+        settings_obj = AuthIdentifierSettings.get_solo()
+        settings_obj.username_affix = "@xyz.ac.in"
+        settings_obj.affix_position = AuthIdentifierSettings.POSITION_SUFFIX
+        settings_obj.save()
+
+        self.student_user = User.objects.create_user(
+            username="student1@xyz.ac.in",
+            password="student-pass",
+            is_active=True,
+        )
+        Group.objects.get_or_create(name="Student")[0].user_set.add(self.student_user)
+
+    def test_student_can_log_in_with_local_username_when_affix_is_enabled(self):
+        response = self.client.post(
+            reverse("login"),
+            {"username": "student1", "password": "student-pass"},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse("index"))
+
+    def test_legacy_student_without_suffix_can_still_log_in_after_affix_is_enabled(self):
+        legacy_user = User.objects.create_user(
+            username="legacyuser",
+            password="student-pass",
+            is_active=True,
+        )
+        Group.objects.get_or_create(name="Student")[0].user_set.add(legacy_user)
+
+        response = self.client.post(
+            reverse("login"),
+            {"username": "legacyuser", "password": "student-pass"},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse("index"))
+
+    def test_student_email_prefix_mode_login_accepts_email_prefix(self):
+        settings_obj = AuthIdentifierSettings.get_solo()
+        settings_obj.username_mode = AuthIdentifierSettings.MODE_EMAIL_PREFIX
+        settings_obj.username_affix = "@xyz.ac.in"
+        settings_obj.affix_position = AuthIdentifierSettings.POSITION_SUFFIX
+        settings_obj.save()
+
+        email_prefix_user = User.objects.create_user(
+            username="mailstudent@xyz.ac.in",
+            password="student-pass",
+            is_active=True,
+            email="mailstudent@example.com",
+        )
+        Group.objects.get_or_create(name="Student")[0].user_set.add(email_prefix_user)
+
+        response = self.client.post(
+            reverse("login"),
+            {"username": "mailstudent", "password": "student-pass"},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse("index"))

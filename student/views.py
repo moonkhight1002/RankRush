@@ -26,6 +26,7 @@ from .models import StuExam_DB
 from .models import StudentInfo
 from examProject.text_utils import split_full_name
 from questions.models import Exam_Model
+from studentPreferences.auth_identifier import get_auth_identifier_username_candidates
 
 def redirect_authenticated_user(request):
     if not request.user.is_authenticated:
@@ -87,11 +88,11 @@ class Register(View):
             first_name, last_name = split_full_name(student_form.cleaned_data.get('full_name'))
             student.first_name = first_name
             student.last_name = last_name
-            student.set_password(student.password)
+            student.set_password(student_form.cleaned_data['password'])
             student.is_active = False
+            student.save()
             my_group = Group.objects.get_or_create(name='Student')
             my_group[0].user_set.add(student)
-            student.save()
 
             uidb64 = urlsafe_base64_encode(force_bytes(student.pk))
             domain = get_current_site(request).domain
@@ -133,26 +134,27 @@ class LoginView(View):
 		response['Expires'] = '0'
 		return response
 	def post(self,request):
-		username = request.POST['username']
+		username_candidates = get_auth_identifier_username_candidates(
+			request.POST.get('username'),
+			email=request.POST.get('email'),
+		)
 		password = request.POST['password']
 
-		if username and password:
-			exis = User.objects.filter(username=username).exists()
-			user_ch = None
-			if exis:
-				user_ch = User.objects.get(username=username)
-				if user_ch.is_superuser:
-					messages.error(request,'Invalid credentials')
-					return render(request,'student/login.html')
-				if user_ch.groups.filter(name='Professor').exists():
-					messages.error(request,'Invalid credentials')
-					return render(request,'student/login.html')
-			user = auth.authenticate(username=username,password=password)
-			if user:
-				if user.is_active:
+		if username_candidates and password:
+			matched_user = None
+			blocked_user_match = False
+			for username in username_candidates:
+				user_candidate = User.objects.filter(username=username).first()
+				if not user_candidate:
+					continue
+				if user_candidate.is_superuser or user_candidate.groups.filter(name='Professor').exists():
+					blocked_user_match = True
+					continue
+				matched_user = user_candidate
+				user = auth.authenticate(username=username,password=password)
+				if user and user.is_active:
 					auth.login(request,user)
-					student_pref = StudentPreferenceModel.objects.filter(user = request.user).exists()
-					email = User.objects.get(username=username).email
+					student_pref = StudentPreferenceModel.objects.filter(user=request.user).exists()
 
 					email_subject = 'You Logged into your Portal account'
 					email_body = "If you think someone else logged in. Please contact support or reset your password.\n\nYou are receving this message because you have enabled login email notifications in portal settings. If you don't want to recieve such emails in future please turn the login email notifications off in settings."
@@ -161,7 +163,7 @@ class LoginView(View):
 						email_subject,
 						email_body,
 						fromEmail,
-						[email],
+						[user.email],
 					)
 					if student_pref :
 						student = StudentPreferenceModel.objects.get(user=request.user)
@@ -174,15 +176,17 @@ class LoginView(View):
 					messages.success(request,"Welcome, "+ display_name + ". You are now logged in.")
 
 					return redirect('index')
-			
-			else:
-				if exis and user_ch:
-					if user_ch.is_active:
-						messages.error(request,'Invalid credentials')	
-						return render(request,'student/login.html')
-					else:
-						messages.error(request,'Account not Activated')
-						return render(request,'student/login.html')
+
+			if matched_user:
+				if matched_user.is_active:
+					messages.error(request,'Invalid credentials')
+					return render(request,'student/login.html')
+				else:
+					messages.error(request,'Account not Activated')
+					return render(request,'student/login.html')
+			if blocked_user_match:
+				messages.error(request,'Invalid credentials')
+				return render(request,'student/login.html')
 
 		messages.error(request,'Please fill all fields')
 		return render(request,'student/login.html')

@@ -2,7 +2,8 @@ from django.contrib.auth.models import Group, User
 from django.test import TestCase
 from django.urls import reverse
 
-from studentPreferences.models import SupportTicket
+from studentPreferences.auth_identifier import build_auth_identifier_username, get_auth_identifier_username_candidates
+from studentPreferences.models import AuthIdentifierSettings, SupportTicket
 
 
 class EmailChangeRequestTests(TestCase):
@@ -52,3 +53,39 @@ class EmailChangeRequestTests(TestCase):
         self.assertIn("faculty-new@example.com", ticket.message)
         self.faculty_user.refresh_from_db()
         self.assertEqual(self.faculty_user.email, "faculty@example.com")
+
+
+class AuthIdentifierHelperTests(TestCase):
+    def test_blank_settings_keep_plain_username(self):
+        self.assertEqual(build_auth_identifier_username("student1"), "student1")
+
+    def test_suffix_settings_append_affix(self):
+        settings_obj = AuthIdentifierSettings.get_solo()
+        settings_obj.username_affix = "@xyz.ac.in"
+        settings_obj.affix_position = AuthIdentifierSettings.POSITION_SUFFIX
+        settings_obj.save()
+
+        self.assertEqual(build_auth_identifier_username("student1"), "student1@xyz.ac.in")
+
+    def test_username_candidates_keep_legacy_plain_username_as_fallback(self):
+        settings_obj = AuthIdentifierSettings.get_solo()
+        settings_obj.username_affix = "@xyz.ac.in"
+        settings_obj.affix_position = AuthIdentifierSettings.POSITION_SUFFIX
+        settings_obj.save()
+
+        self.assertEqual(
+            get_auth_identifier_username_candidates("student1"),
+            ["student1@xyz.ac.in", "student1"],
+        )
+
+    def test_email_prefix_mode_uses_email_local_part(self):
+        settings_obj = AuthIdentifierSettings.get_solo()
+        settings_obj.username_mode = AuthIdentifierSettings.MODE_EMAIL_PREFIX
+        settings_obj.username_affix = "@xyz.ac.in"
+        settings_obj.affix_position = AuthIdentifierSettings.POSITION_SUFFIX
+        settings_obj.save()
+
+        self.assertEqual(
+            build_auth_identifier_username("", email="student1@example.com"),
+            "student1@xyz.ac.in",
+        )

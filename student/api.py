@@ -5,16 +5,18 @@ import json
 from validate_email import validate_email
 from .views import EmailThread
 from django.core.mail import EmailMessage
+from studentPreferences.auth_identifier import build_auth_identifier_username, strip_auth_identifier_affix
 
 class UsernameValidation(View):
     def post(self,request):
         data = json.loads(request.body)
-        username = data['username']
+        username = strip_auth_identifier_affix(data['username'])
 
         if not str(username).isalnum():
             return JsonResponse({'username_error':'Username should only contain alphanumeric characters'},status=400)
-        
-        if User.objects.filter(username=username).exists():
+
+        normalized_username = build_auth_identifier_username(username)
+        if User.objects.filter(username=normalized_username).exists():
             return JsonResponse({'username_error':'Username Exists'},status=409)
 
         return JsonResponse({'username_valid':True})

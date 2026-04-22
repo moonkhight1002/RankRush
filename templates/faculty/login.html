@@ -26,7 +26,33 @@
 
             {% include 'partials/_messages.html' %}
 
-            <input type="text" name="username" placeholder="Username" required />
+            {% if auth_identifier.uses_manual_username and auth_identifier.enabled %}
+                <div class="auth-identifier-field auth-identifier-field-{{ auth_identifier.position }}">
+                    {% if auth_identifier.is_prefix %}
+                        <span class="auth-identifier-affix">{{ auth_identifier.text }}</span>
+                    {% endif %}
+                    <input type="text" name="username" placeholder="Username" required />
+                    {% if auth_identifier.is_suffix %}
+                        <span class="auth-identifier-affix">{{ auth_identifier.text }}</span>
+                    {% endif %}
+                </div>
+            {% elif auth_identifier.uses_manual_username %}
+                <input type="text" name="username" placeholder="Username" required />
+            {% else %}
+                {% if auth_identifier.enabled %}
+                    <div class="auth-identifier-field auth-identifier-field-{{ auth_identifier.position }}">
+                        {% if auth_identifier.is_prefix %}
+                            <span class="auth-identifier-affix">{{ auth_identifier.text }}</span>
+                        {% endif %}
+                        <input type="text" name="username" placeholder="Email Prefix" required />
+                        {% if auth_identifier.is_suffix %}
+                            <span class="auth-identifier-affix">{{ auth_identifier.text }}</span>
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <input type="text" name="username" placeholder="Email Prefix" required />
+                {% endif %}
+            {% endif %}
             <input type="password" name="password" placeholder="Password" required />
 
             <button type="submit">Login</button>
